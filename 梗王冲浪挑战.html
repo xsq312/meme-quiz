@@ -1,0 +1,2547 @@
+﻿<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>梗王冲浪挑战 V2.2</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;-webkit-tap-highlight-color:transparent}
+:root{
+  --purple:#7c3aed;--purple-dark:#4c1d95;--pink:#ec4899;--orange:#f97316;
+  --green:#22c55e;--red:#ef4444;--yellow:#fbbf24;--bg:#1a1033;--card:#2d1b52;--text:#f3e8ff;
+  --text-dim:#c4b5fd;--radius:16px;
+}
+html,body{height:100%}
+body{
+  font-family:"PingFang SC","Microsoft YaHei",system-ui,sans-serif;
+  background:#0f0a1f;color:var(--text);
+  display:flex;justify-content:center;align-items:flex-start;
+  min-height:100vh;overflow-x:hidden;
+}
+#app{
+  width:100%;max-width:480px;min-height:100vh;position:relative;
+  background:linear-gradient(180deg,#2d1b52 0%,#1a1033 60%,#120b26 100%);
+  box-shadow:0 0 40px rgba(124,58,237,.3);overflow-x:hidden;overflow-y:auto;
+  -webkit-overflow-scrolling:touch;
+}
+.screen{display:none;width:100%;min-height:100vh;padding:16px;animation:fadeIn .3s ease}
+.screen.active{display:block}
+@keyframes fadeIn{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+/* 通用按钮 */
+.btn{
+  display:block;width:100%;padding:14px 18px;border:none;border-radius:var(--radius);
+  font-size:17px;font-weight:700;color:#fff;cursor:pointer;
+  background:linear-gradient(135deg,var(--purple),var(--pink));
+  box-shadow:0 6px 18px rgba(124,58,237,.4);transition:transform .12s;
+}
+.btn:active{transform:scale(.97)}
+.btn.secondary{background:linear-gradient(135deg,#475569,#64748b)}
+.btn.ghost{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.2)}
+.btn.orange{background:linear-gradient(135deg,var(--orange),#fbbf24)}
+.btn.green{background:linear-gradient(135deg,var(--green),#16a34a)}
+.btn:disabled{opacity:.45;cursor:not-allowed}
+/* 顶部栏 */
+.topbar{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px}
+.topbar .title{font-size:20px;font-weight:800}
+.coin-box{display:flex;align-items:center;gap:6px;background:rgba(255,255,255,.1);padding:6px 12px;border-radius:20px;font-weight:700}
+.coin-box img{width:20px;height:20px}
+/* 启动页 */
+#screen-splash{display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:24px}
+#screen-splash img.hero{width:100%;border-radius:20px;margin-bottom:20px}
+#screen-splash h1{font-size:30px;font-weight:900;margin-bottom:10px;background:linear-gradient(90deg,#fbbf24,#ec4899);-webkit-background-clip:text;background-clip:text;color:transparent}
+#screen-splash p{color:var(--text-dim);margin-bottom:28px;line-height:1.6}
+/* 大厅入口卡片 */
+.menu-card{
+  position:relative;border-radius:20px;overflow:hidden;margin-bottom:16px;cursor:pointer;
+  border:1px solid rgba(255,255,255,.15);
+}
+.menu-card img{width:100%;display:block;aspect-ratio:4/3;object-fit:cover}
+.menu-card .mask{position:absolute;inset:0;background:linear-gradient(180deg,transparent 40%,rgba(0,0,0,.75));display:flex;flex-direction:column;justify-content:flex-end;padding:16px}
+.menu-card .mask h3{font-size:20px;font-weight:800;margin-bottom:4px}
+.menu-card .mask p{font-size:13px;color:var(--text-dim)}
+.menu-grid{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:8px}
+/* 段位信息条 */
+.rank-bar{background:rgba(255,255,255,.08);border-radius:var(--radius);padding:14px;display:flex;align-items:center;gap:14px;margin-bottom:16px}
+.rank-bar img.badge{width:56px;height:56px;border-radius:14px}
+.rank-bar .info{flex:1;min-width:0}
+.rank-bar .rank-name{font-weight:800;font-size:16px}
+.rank-bar .stars{color:#fbbf24;font-size:14px;margin-top:2px}
+.progress{height:8px;background:rgba(255,255,255,.15);border-radius:6px;margin-top:6px;overflow:hidden}
+.progress>div{height:100%;background:linear-gradient(90deg,var(--purple),var(--pink));border-radius:6px;transition:width .3s}
+/* 答题页 */
+.quiz-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;font-weight:700;gap:10px}
+.quiz-head .hp{color:var(--red)}
+.quiz-head .timer{font-variant-numeric:tabular-nums}
+.icon-btn{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:var(--text);border-radius:12px;padding:6px 12px;font-size:13px;cursor:pointer;white-space:nowrap}
+.timer-bar{height:6px;background:rgba(255,255,255,.15);border-radius:6px;margin-bottom:16px;overflow:hidden}
+.timer-bar>div{height:100%;background:linear-gradient(90deg,var(--green),var(--orange));border-radius:6px}
+.question{font-size:18px;line-height:1.7;margin-bottom:20px;font-weight:600;min-height:80px}
+.option{
+  display:block;width:100%;text-align:left;padding:14px 16px;margin-bottom:12px;
+  background:rgba(255,255,255,.08);border:1.5px solid rgba(255,255,255,.15);border-radius:var(--radius);
+  color:var(--text);font-size:16px;cursor:pointer;transition:all .15s;
+}
+.option:active{transform:scale(.98)}
+.option.correct{background:rgba(34,197,94,.25);border-color:var(--green)}
+.option.wrong{background:rgba(239,68,68,.25);border-color:var(--red)}
+.option.disabled{pointer-events:none;opacity:.7}
+.option .tag{display:inline-block;width:26px;height:26px;line-height:26px;text-align:center;border-radius:8px;background:rgba(255,255,255,.15);margin-right:10px;font-weight:800}
+.quiz-tools{display:flex;gap:10px;margin-top:8px}
+.tool-btn{flex:1;padding:10px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:var(--text-dim);font-size:13px;cursor:pointer}
+.tool-btn:disabled{opacity:.4}
+/* 连击横幅 */
+.combo-banner{position:fixed;top:18%;left:50%;transform:translateX(-50%);z-index:60;font-size:30px;font-weight:900;color:#fbbf24;text-shadow:0 2px 12px rgba(236,72,153,.7);pointer-events:none;animation:pop .4s ease}
+@keyframes pop{0%{transform:translateX(-50%) scale(.5)}60%{transform:translateX(-50%) scale(1.15)}100%{transform:translateX(-50%) scale(1)}}
+/* 反馈弹层 */
+.feedback{position:fixed;inset:0;background:rgba(0,0,0,.7);display:none;align-items:center;justify-content:center;z-index:50;padding:24px}
+.feedback.active{display:flex}
+.feedback .fb-card{background:var(--card);border-radius:24px;padding:24px;text-align:center;max-width:320px;width:100%}
+.feedback img{width:140px;height:140px;object-fit:contain;margin-bottom:14px}
+.feedback .fb-title{font-size:22px;font-weight:900;margin-bottom:8px}
+.feedback .fb-desc{color:var(--text-dim);font-size:14px;line-height:1.6;margin-bottom:16px}
+/* 结算页 */
+.result-card{background:rgba(255,255,255,.08);border-radius:24px;padding:24px;text-align:center;margin-bottom:16px}
+.result-card img{width:160px;height:160px;object-fit:contain;margin-bottom:14px}
+.result-card h2{font-size:26px;font-weight:900;margin-bottom:8px}
+.result-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;margin:16px 0}
+.result-stats .stat{background:rgba(255,255,255,.08);border-radius:14px;padding:12px}
+.result-stats .num{font-size:22px;font-weight:900;color:#fbbf24}
+.result-stats .lbl{font-size:12px;color:var(--text-dim);margin-top:2px}
+/* 浓度测试结果卡 */
+.conc-card{border-radius:24px;overflow:hidden;margin-bottom:16px}
+.conc-card .conc-img{width:100%;aspect-ratio:3/4;object-fit:cover}
+.conc-card .conc-body{padding:20px;text-align:center}
+.conc-card .conc-num{font-size:40px;font-weight:900;color:#fbbf24}
+.conc-card .conc-rank{font-size:20px;font-weight:800;margin:6px 0}
+.conc-card .conc-tag{color:var(--text-dim);font-size:14px;line-height:1.7}
+/* 列表页 */
+.list-item{background:rgba(255,255,255,.08);border-radius:14px;padding:14px;margin-bottom:10px}
+.list-item .q{font-weight:600;margin-bottom:6px;line-height:1.6}
+.list-item .a{color:var(--green);font-size:14px;margin-bottom:4px}
+.list-item .exp{color:var(--text-dim);font-size:13px;line-height:1.6}
+.empty-tip{text-align:center;color:var(--text-dim);padding:40px 20px;line-height:1.8}
+/* 商城 */
+.shop-tabs{display:flex;gap:8px;margin-bottom:14px;overflow-x:auto}
+.shop-tab{flex:1;text-align:center;padding:10px 6px;border-radius:12px;background:rgba(255,255,255,.08);font-size:13px;cursor:pointer;white-space:nowrap;color:var(--text-dim)}
+.shop-tab.active{background:linear-gradient(135deg,var(--purple),var(--pink));color:#fff}
+.shop-item{background:rgba(255,255,255,.08);border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px;margin-bottom:12px}
+.shop-item img{width:52px;height:52px;border-radius:12px;object-fit:cover}
+.shop-item .si-info{flex:1;min-width:0}
+.shop-item .si-name{font-weight:700;margin-bottom:2px}
+.shop-item .si-desc{font-size:12px;color:var(--text-dim);line-height:1.5}
+.shop-item .si-btn{flex-shrink:0;padding:8px 12px;border-radius:10px;border:none;font-weight:700;font-size:13px;cursor:pointer;color:#fff}
+.si-btn.buy{background:linear-gradient(135deg,var(--orange),#fbbf24)}
+.si-btn.equip{background:linear-gradient(135deg,var(--green),#16a34a)}
+.si-btn.equipped{background:rgba(255,255,255,.15);color:var(--text-dim)}
+.si-btn.lock{background:#475569}
+/* 个人主页装扮 */
+.profile-head{background:rgba(255,255,255,.08);border-radius:24px;padding:22px;text-align:center;margin-bottom:16px;position:relative}
+.avatar-wrap{width:96px;height:96px;margin:0 auto 10px;border-radius:24px;overflow:hidden;position:relative;border:2px solid var(--yellow)}
+.avatar-wrap img{width:100%;height:100%;object-fit:cover}
+.profile-title{font-size:18px;font-weight:800;color:var(--yellow)}
+.profile-sub{color:var(--text-dim);font-size:13px;margin-top:4px}
+/* 底部导航 */
+.tabbar{position:sticky;bottom:0;display:flex;background:rgba(20,12,40,.95);border-top:1px solid rgba(255,255,255,.1);padding:8px 4px;gap:2px;z-index:20}
+.tabbar .tab{flex:1;text-align:center;font-size:11px;color:var(--text-dim);cursor:pointer;padding:6px 0;min-width:0}
+.tabbar .tab.active{color:#fbbf24}
+.tabbar .tab .ico{font-size:19px;display:block;margin-bottom:2px}
+.hidden{display:none!important}
+/* ===== 新增：输入框 / 弹窗 / 房间 / 指引 / 开关 ===== */
+.text-input{
+  width:100%;padding:14px 16px;border-radius:var(--radius);border:1.5px solid rgba(255,255,255,.2);
+  background:rgba(255,255,255,.08);color:var(--text);font-size:17px;outline:none;text-align:center;
+}
+.text-input::placeholder{color:var(--text-dim)}
+.text-input:focus{border-color:var(--pink)}
+.code-input{letter-spacing:8px;font-size:24px;font-weight:800;text-align:center}
+.modal-mask{position:fixed;inset:0;background:rgba(0,0,0,.72);display:flex;align-items:center;justify-content:center;z-index:80;padding:24px}
+.modal-card{background:var(--card);border-radius:24px;padding:24px;max-width:340px;width:100%;text-align:center;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.modal-card h2{font-size:22px;font-weight:900;margin-bottom:10px}
+.modal-card p{color:var(--text-dim);font-size:14px;line-height:1.6;margin-bottom:16px}
+.room-code{font-size:34px;font-weight:900;letter-spacing:10px;color:var(--yellow);margin:10px 0;user-select:all}
+.vs-room-head{display:flex;justify-content:space-between;align-items:center;gap:10px;margin-bottom:14px}
+.player-chip{flex:1;background:rgba(255,255,255,.08);border-radius:14px;padding:12px;text-align:center}
+.player-chip .p-name{font-weight:800;font-size:15px;margin-bottom:4px}
+.player-chip .p-score{font-size:22px;font-weight:900;color:var(--yellow)}
+.vs-vs{font-size:20px;font-weight:900;color:var(--pink)}
+/* 开关 */
+.switch-row{display:flex;justify-content:space-between;align-items:center;background:rgba(255,255,255,.08);border-radius:14px;padding:14px;margin-bottom:10px}
+.switch-row .sw-info{text-align:left}
+.switch-row .sw-name{font-weight:700;margin-bottom:2px}
+.switch-row .sw-desc{font-size:12px;color:var(--text-dim)}
+.switch{position:relative;width:52px;height:30px;border-radius:16px;background:rgba(255,255,255,.18);cursor:pointer;transition:background .2s;flex-shrink:0}
+.switch.on{background:linear-gradient(135deg,var(--green),#16a34a)}
+.switch::after{content:"";position:absolute;top:3px;left:3px;width:24px;height:24px;border-radius:50%;background:#fff;transition:transform .2s}
+.switch.on::after{transform:translateX(22px)}
+/* 新手指引蒙层 */
+.guide-mask{position:fixed;inset:0;z-index:90;pointer-events:auto}
+.guide-highlight{position:fixed;border:2px solid var(--yellow);border-radius:16px;box-shadow:0 0 0 9999px rgba(0,0,0,.72);z-index:91;pointer-events:none}
+.guide-card{position:fixed;left:50%;transform:translateX(-50%);bottom:40px;width:calc(100% - 48px);max-width:380px;background:var(--card);border-radius:20px;padding:18px;z-index:92;box-shadow:0 12px 40px rgba(0,0,0,.5)}
+.guide-card .g-title{font-size:18px;font-weight:900;margin-bottom:6px;color:var(--yellow)}
+.guide-card .g-desc{font-size:14px;color:var(--text-dim);line-height:1.6;margin-bottom:14px}
+.guide-card .g-btns{display:flex;gap:10px}
+.guide-card .g-btns .btn{margin:0}
+.guide-dots{display:flex;gap:6px;justify-content:center;margin-bottom:12px}
+.guide-dots .dot{width:8px;height:8px;border-radius:50%;background:rgba(255,255,255,.25)}
+.guide-dots .dot.active{background:var(--yellow)}
+.top-actions{display:flex;gap:8px;align-items:center}
+.icon-action{width:38px;height:38px;border-radius:12px;background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.2);color:var(--text);font-size:17px;cursor:pointer;display:flex;align-items:center;justify-content:center}
+.name-tag{font-size:13px;color:var(--text-dim)}
+.name-tag b{color:var(--yellow)}
+/* 选关网格 */
+.camp-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-top:14px}
+.camp-cell{background:rgba(255,255,255,.08);border-radius:14px;padding:10px 4px;text-align:center;cursor:pointer;border:1.5px solid transparent}
+.camp-cell.open{border-color:var(--purple)}
+.camp-cell.done{background:linear-gradient(135deg,rgba(34,197,93,.25),rgba(16,185,129,.15));border-color:var(--green)}
+.camp-cell.lock{opacity:.4;cursor:not-allowed}
+.cc-num{font-weight:900;font-size:17px}
+.cc-best{font-size:10px;color:var(--text-dim);margin-top:3px}
+/* 排行榜 */
+.board{display:flex;flex-direction:column;gap:8px}
+.board-row{display:flex;align-items:center;gap:12px;background:rgba(255,255,255,.07);border-radius:14px;padding:12px 14px}
+.board-row.me{background:linear-gradient(135deg,rgba(251,191,36,.22),rgba(236,72,153,.15));border:1.5px solid var(--yellow)}
+.br-rank{width:34px;font-weight:900;color:var(--yellow);text-align:center}
+.br-name{flex:1;font-weight:700;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.br-meta{color:var(--text-dim);font-size:13px}
+@media(min-width:500px){
+  body{padding:20px 0}
+  #app{border-radius:24px;min-height:calc(100vh - 40px)}
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+<script>
+/* ==================== 素材路径配置 ==================== */
+const ASSET = {
+  splash:"assets/01-核心界面主视觉/01-启动页主视觉.jpg",
+  lobby:"assets/01-核心界面主视觉/02-首页大厅背景.jpg",
+  camp:"assets/01-核心界面主视觉/03-单人闯关封面.jpg",
+  vs:"assets/01-核心界面主视觉/04-1v1对战封面.jpg",
+  test:"assets/01-核心界面主视觉/05-梗浓度测试封面.jpg",
+  badges:[
+    "assets/02-段位头像框/06-2G冲浪手徽章.jpg",
+    "assets/02-段位头像框/07-5G网民徽章.jpg",
+    "assets/02-段位头像框/08-梗界达人徽章.jpg",
+    "assets/02-段位头像框/09-冲浪王者徽章.jpg",
+    "assets/02-段位头像框/10-梗之神徽章.jpg"
+  ],
+  frame:"assets/02-段位头像框/11-梗王头像框.jpg",
+  fbOk:"assets/03-答题反馈特效/12-答对成功特效.jpg",
+  fbNo:"assets/03-答题反馈特效/13-答错翻车特效.jpg",
+  combo:"assets/03-答题反馈特效/14-连击超神特效.jpg",
+  win:"assets/03-答题反馈特效/15-闯关胜利结算图.jpg",
+  fail:"assets/03-答题反馈特效/16-闯关失败翻车图.jpg",
+  vsWin:"assets/03-答题反馈特效/17-对战胜利奖杯.jpg",
+  vsLose:"assets/03-答题反馈特效/18-对战失败尴尬图.jpg",
+  btn:"assets/03-答题反馈特效/19-答题按钮底图.jpg",
+  conc:[
+    "assets/04-浓度测试结果卡/20-2G断网选手结果卡.jpg",
+    "assets/04-浓度测试结果卡/21-5G普通网民结果卡.jpg",
+    "assets/04-浓度测试结果卡/22-资深冲浪达人结果卡.jpg",
+    "assets/04-浓度测试结果卡/23-互联网梗神结果卡.jpg"
+  ],
+  coin:"assets/05-道具功能图标/24-金币图标.jpg",
+  cardExclude:"assets/05-道具功能图标/25-排除卡道具图标.jpg",
+  cardDelay:"assets/05-道具功能图标/26-延时卡道具图标.jpg",
+  book:"assets/05-道具功能图标/27-梗百科入口图标.jpg",
+  checkin:"assets/05-道具功能图标/28-每日签到图标.jpg",
+  prog:"assets/05-道具功能图标/29-段位进度条底图.jpg",
+  emoOk:[
+    "assets/07-表情包贴纸/43-答对表情包1-竖拇指.jpg",
+    "assets/07-表情包贴纸/44-答对表情包2-墨镜大脑.jpg",
+    "assets/07-表情包贴纸/45-答对表情包3-撒花蹦跳.jpg",
+    "assets/07-表情包贴纸/46-答对表情包4-星星眼捧脸.jpg"
+  ],
+  emoNo:[
+    "assets/07-表情包贴纸/47-答错表情包1-脑袋冒烟.jpg",
+    "assets/07-表情包贴纸/48-答错表情包2-抱头蹲地.jpg",
+    "assets/07-表情包贴纸/49-答错表情包3-流汗假笑.jpg",
+    "assets/07-表情包贴纸/50-答错表情包4-冲浪板翻车.jpg"
+  ],
+  emoCombo:[
+    "assets/07-表情包贴纸/51-连击表情包1-闪电超神.jpg",
+    "assets/07-表情包贴纸/52-连击表情包2-连胜火焰.jpg"
+  ],
+  loading:"assets/08-补充素材/56-加载页loading插画.jpg",
+  qr:"assets/08-补充素材/55-分享二维码底图.jpg",
+  notice:"assets/08-补充素材/57-游戏公告弹窗底图.jpg",
+  catCover:{
+    "火影":"assets/06-圈层专场封面/30-火影手游专场.jpg",
+    "第五人格":"assets/06-圈层专场封面/31-第五人格专场.jpg",
+    "饭圈":"assets/06-圈层专场封面/32-饭圈专场.jpg",
+    "影视综艺":"assets/06-圈层专场封面/33-影视综艺专场.jpg",
+    "说唱":"assets/06-圈层专场封面/34-说唱圈专场.jpg",
+    "三坑消费":"assets/06-圈层专场封面/35-三坑服饰专场.jpg",
+    "美妆":"assets/06-圈层专场封面/36-美妆护肤专场.jpg",
+    "萌宠":"assets/06-圈层专场封面/37-萌宠圈专场.jpg",
+    "土味抽象":"assets/06-圈层专场封面/39-土味抽象专场.jpg",
+    "外网":"assets/06-圈层专场封面/40-外网梗圈专场.jpg",
+    "童年游戏":"assets/06-圈层专场封面/41-童年游戏专场.jpg",
+    "电竞":"assets/06-圈层专场封面/42-电竞通用专场.jpg",
+    "通用":"assets/06-圈层专场封面/43-通用冲浪梗专场.jpg"
+  }
+};
+
+const QUESTIONS = [
+  {diff:"easy",cat:"通用",q:"小明刷到一条内容，看完整个人都不好了，连发三条“破防了”，这里“破防”指的是：",options:["心理防线被突破、情绪失控","身体被打伤","穿的衣服破了","防守队员犯规"],ans:0,exp:"破防本是游戏里防御被打破，引申为心理防线崩溃、情绪失控。"},
+  {diff:"easy",cat:"通用",q:"同事摸鱼被老板撞见，尴尬得想原地消失，这种当众尴尬叫：",options:["社死","社牛","出圈","躺赢"],ans:0,exp:"社死=社会性死亡，形容当众出糗、尴尬到没脸见人。"},
+  {diff:"easy",cat:"通用",q:"朋友在群里连发“xswl”，他的心情最可能是：",options:["笑得停不下来","吓得不行","小声提问","随手遗忘"],ans:0,exp:"xswl=笑死我了，看到搞笑内容时使用。"},
+  {diff:"easy",cat:"通用",q:"被博主安利一款产品后特别想买，这种心动过程叫：",options:["种草","拔草","踩雷","翻车"],ans:0,exp:"种草=被安利后产生购买欲；拔草是打消购买欲。"},
+  {diff:"easy",cat:"通用",q:"买完看到差评后悔不迭，已经不想买了，这叫：",options:["拔草","种草","囤货","安利"],ans:0,exp:"拔草与种草相对，指打消购买念头。"},
+  {diff:"easy",cat:"通用",q:"朋友夸某位歌手“yyds”，他的意思是这位歌手：",options:["永远的神、顶尖厉害","永远单身","年纪很大","语速很快"],ans:0,exp:"yyds=永远的神，用来夸赞顶尖、无人能及。"},
+  {diff:"easy",cat:"通用",q:"新学期他谁都不认识，课间一个人坐着，MBTI 里这种内向型更像：",options:["i人","e人","社牛","显眼包"],ans:0,exp:"i人内向、精力向内；e人外向、爱社交。"},
+  {diff:"easy",cat:"通用",q:"聚会时他主动搭话、带动气氛、完全不怯场，这种人被称为：",options:["社牛","社恐","社死","佛系"],ans:0,exp:"社牛=社交牛逼症，社交能力强、不怯场。"},
+  {diff:"easy",cat:"通用",q:"这道题离谱到不知道该夸还是该骂，网友会回复：",options:["难评","破防","绝绝子","躺平"],ans:0,exp:"难评=难以评价，形容事情离谱到无从说起。"},
+  {diff:"easy",cat:"通用",q:"打工人下班后人菜精神差、一身疲惫，被调侃满是：",options:["班味儿","松弛感","搭子","天花板"],ans:0,exp:"班味儿指被工作浸染、疲惫不堪的状态。"},
+  {diff:"easy",cat:"通用",q:"他走到哪都爱出风头、存在感拉满，被同学起外号叫：",options:["显眼包","搭子","韭菜","NPC"],ans:0,exp:"显眼包指爱出风头、搞笑又显眼的人。"},
+  {diff:"easy",cat:"通用",q:"吃饭固定约同一个人拼桌，这位同伴被叫做：",options:["饭搭子","合租室友","竞争对手","路人甲"],ans:0,exp:"搭子是特定场景结伴做事的轻量伙伴。"},
+  {diff:"easy",cat:"通用",q:"这家奶茶被称为本地奶茶界的天花板，意思是它：",options:["水平最高、上限很高","开在地下室","价格最低","很难买到"],ans:0,exp:"天花板形容领域内最高水平、上限。"},
+  {diff:"easy",cat:"通用",q:"这波操作他稳稳拿捏，意思是他：",options:["轻松掌控、搞定了","翻车了","踩雷了","破防了"],ans:0,exp:"拿捏指稳稳掌控、轻松拿下。"},
+  {diff:"easy",cat:"通用",q:"刷到童年动画重制版，他感慨“爷青回”，意思是：",options:["青春回来了","青春结束了","太难看了","要退网了"],ans:0,exp:"爷青回=爷的青春回来了，怀旧事物重现时使用。"},
+  {diff:"easy",cat:"通用",q:"追了多年的剧正式完结，网友刷“爷青结”，意思是：",options:["青春结束了","青春回来了","剧情很燃","要开新坑了"],ans:0,exp:"爷青结=爷的青春结束了，怀旧事物落幕时使用。"},
+  {diff:"easy",cat:"通用",q:"晚上躺在床上emo，他的状态最可能是：",options:["情绪低落伤感","特别兴奋","开挂连胜","上头追剧"],ans:0,exp:"emo指情绪低落、伤感提不起劲。"},
+  {diff:"easy",cat:"通用",q:"被卷得受不了，他决定降低欲望、不再硬拼，这种做法叫：",options:["躺平","摆烂","逆袭","冲锋"],ans:0,exp:"躺平指降低欲望、不内卷，平和过日子。"},
+  {diff:"easy",cat:"通用",q:"事情已经搞砸也不管了，破罐破摔的态度叫：",options:["摆烂","躺平","翻盘","加油"],ans:0,exp:"摆烂指变坏后不再补救，任由其烂下去。"},
+  {diff:"easy",cat:"通用",q:"他随手一抽就抽到限量款，运气爆棚被称为：",options:["欧皇","非酋","混子","演员"],ans:0,exp:"欧皇=脸白运气好；非酋=脸黑运气差。"},
+  {diff:"easy",cat:"通用",q:"连抽十次全是垫底款，他自嘲是：",options:["非酋","欧皇","carry","神豪"],ans:0,exp:"非酋形容运气差、总抽不中。"},
+  {diff:"easy",cat:"通用",q:"为了刷进度熬到半夜，网友管这种行为叫：",options:["肝","氪","苟","躺"],ans:0,exp:"肝=熬夜熬时间刷进度；氪=花钱充值。"},
+  {diff:"easy",cat:"通用",q:"为喜欢的游戏皮肤充值花钱，网友简称：",options:["氪","肝","苟","躺"],ans:0,exp:"氪金即为游戏/爱好花钱充值。"},
+  {diff:"easy",cat:"通用",q:"全程没怎么操作，全靠队友带飞获胜，这叫：",options:["躺赢","carry","炸鱼","代练"],ans:0,exp:"躺赢指不出力、靠别人带飞获胜。"},
+  {diff:"easy",cat:"通用",q:"团队里挑大梁、带动节奏赢下比赛的核心，叫：",options:["carry","混子","演员","NPC"],ans:0,exp:"carry指核心带队、带动节奏获胜。"},
+  {diff:"easy",cat:"通用",q:"感冒发烧浑身没劲，他说自己现在是：",options:["残血","满血","回城","秒杀"],ans:0,exp:"残血指血量很低，引申为状态很差。"},
+  {diff:"easy",cat:"通用",q:"这道题他三秒就选出答案，一下子解决，属于：",options:["秒杀","回城","开荒","尾刀"],ans:0,exp:"秒杀指瞬间击杀，引申为一下子搞定。"},
+  {diff:"easy",cat:"通用",q:"老手跑去新手局虐新人，这种行为被调侃为：",options:["炸鱼","代练","演员","躺赢"],ans:0,exp:"炸鱼指高水平玩家去低端局虐新手。"},
+  {diff:"easy",cat:"通用",q:"比赛里有人故意放水、装作很菜，这种玩家叫：",options:["演员","大神","萌新","坦克"],ans:0,exp:"演员指故意演、故意输，像演戏一样。"},
+  {diff:"easy",cat:"通用",q:"新软件刚上手还在熟悉基础功能，他正处在：",options:["新手村","通关","满级","回城"],ans:0,exp:"新手村是RPG初始区域，引申为入门阶段。"},
+  {diff:"easy",cat:"通用",q:"边学边练攒经验、一步步进步，像游戏里一样：",options:["打怪升级","躺平摆烂","回城复活","卡bug"],ans:0,exp:"打怪升级比喻在实践中积累经验、逐步成长。"},
+  {diff:"easy",cat:"通用",q:"提前把当前进度备份好、留条后路，游戏操作叫：",options:["存档","读档","通关","下线"],ans:0,exp:"存档即保存进度，引申为备份状态留后路。"},
+  {diff:"easy",cat:"通用",q:"搞砸后想回到之前的状态重来，游戏操作叫：",options:["读档","存档","开荒","伐木"],ans:0,exp:"读档即读取之前存档，回到之前重来。"},
+  {diff:"easy",cat:"通用",q:"他钻规则空子、走捷径钻了漏洞，俗称：",options:["卡bug","开荒","通关","躺赢"],ans:0,exp:"卡bug指利用系统漏洞钻空子走捷径。"},
+  {diff:"easy",cat:"通用",q:"为这事熬了通宵刷任务，他说自己是在：",options:["肝","氪","苟","躺"],ans:0,exp:"肝指花大量时间精力刷进度。"},
+  {diff:"easy",cat:"通用",q:"开场第一波就被淘汰、直接崩盘，对局里叫：",options:["秒倒","四出","压机","OB"],ans:0,exp:"秒倒指开局很快被击倒、直接崩盘。"},
+  {diff:"easy",cat:"通用",q:"第一个倒下、替全队背锅开场，被戏称为：",options:["祭天","carry","OB","扛刀"],ans:0,exp:"祭天指第一个倒下、背锅开场。"},
+  {diff:"easy",cat:"通用",q:"在旁边只看不操作、旁观指点的位置，叫：",options:["OB位","输出位","打野位","前排位"],ans:0,exp:"OB指旁观、只看不操作。"},
+  {diff:"easy",cat:"通用",q:"每天上线必做的固定任务，游戏里叫：",options:["日常","周常","主线","支线"],ans:0,exp:"日常指每天必做的固定任务。"},
+  {diff:"easy",cat:"通用",q:"最终关卡里最强的头目难关，叫：",options:["Boss","小怪","NPC","小兵"],ans:0,exp:"Boss指最终头目、最大难关。"},
+  {diff:"easy",cat:"通用",q:"非玩家控制、按固定程序行动的角色，游戏里叫：",options:["NPC","Boss","队友","刺客"],ans:0,exp:"NPC即非玩家角色，按程序行动。"},
+  {diff:"easy",cat:"通用",q:"当前版本最强、最吃香的最优选择，叫版本：",options:["答案","下水道","陷阱","弃子"],ans:0,exp:"版本答案指当前版本最优解、最强选择。"},
+  {diff:"easy",cat:"通用",q:"当前版本最弱、没人愿意用，调侃在：",options:["下水道","T0","天花板","前排"],ans:0,exp:"下水道形容版本强度垫底、没人用。"},
+  {diff:"easy",cat:"通用",q:"操作菜得让人看得想吃饭，电竞圈吐槽：",options:["下饭","carry","躺赢","满血"],ans:0,exp:"下饭形容操作菜得让人看得下饭。"},
+  {diff:"easy",cat:"通用",q:"白送机会、平白把优势送掉，叫：",options:["白给","翻盘","carry","守家"],ans:0,exp:"白给指无意义地送掉、白送优势。"},
+  {diff:"easy",cat:"通用",q:"蹲在角落暗处偷袭阴人的玩家，被调侃为：",options:["老六","大神","坦匪","辅助"],ans:0,exp:"老六指蹲角落偷袭、阴人的玩家。"},
+  {diff:"easy",cat:"通用",q:"给自己加的正面增益状态，叫：",options:["buff","debuff","残血","回城"],ans:0,exp:"buff是正面增益；debuff是负面减益。"},
+  {diff:"easy",cat:"通用",q:"身上附带的负面减益状态，叫：",options:["debuff","buff","满血","闪现"],ans:0,exp:"debuff是负面减益状态。"},
+  {diff:"easy",cat:"通用",q:"这东西号称特效神奇实际没用，买了等于交：",options:["智商税","保护费","服务费","会员费"],ans:0,exp:"智商税指为没实际价值的东西花冤枉钱。"},
+  {diff:"easy",cat:"通用",q:"和贵价款效果相近、价格更低的正规替代品，叫：",options:["平替","山寨","盗版","低配"],ans:0,exp:"平替=平价替代品，效果相近价格更低。"},
+  {diff:"easy",cat:"通用",q:"买到不好用、不符合预期的东西，俗称踩：",options:["雷","坑","线","点"],ans:0,exp:"踩雷指买到不好、不符合预期的东西。"},
+  {diff:"easy",cat:"通用",q:"装傻充愣、听不懂时含糊发出的糊弄声音是：",options:["阿巴阿巴","退退退","挖呀挖","咔咔咔"],ans:0,exp:"阿巴阿巴形容装傻、失语、蒙混过关。"},
+  {diff:"easy",cat:"通用",q:"搞创意、玩花样博节目效果，抽象圈叫：",options:["整活","搬砖","打卡","签到"],ans:0,exp:"整活指搞创意、玩花样出节目效果。"},
+  {diff:"easy",cat:"通用",q:"社交能力拉满、完全不怕生敢说敢做，叫：",options:["社交牛逼症","社恐","社死","佛系"],ans:0,exp:"社交牛逼症（社牛）形容社交极强、不怯场。"},
+  {diff:"easy",cat:"通用",q:"想把晦气赶走，边摆手边喊：",options:["退退退","冲冲冲","六六六","好好好"],ans:0,exp:"退退退是驱赶晦气、表达拒绝的玩梗表达。"},
+  {diff:"easy",cat:"通用",q:"刷到魔性舞蹈“科目三”，它最初火起来是因为：",options:["广西特色舞蹈","驾照考试科目三","广场舞比赛","街舞大赛"],ans:0,exp:"科目三本是广西当地特色舞蹈，后成全网魔性整活舞。"},
+  {diff:"easy",cat:"通用",q:"对可爱小猫小狗的亲昵称呼“哈基米”，指的是：",options:["可爱小动物泛称","一种零食","一首儿歌","一个品牌"],ans:0,exp:"哈基米是对可爱小动物的亲昵泛称。"},
+  {diff:"easy",cat:"通用",q:"调皮总拆家的宠物，主人又气又无奈称其为：",options:["逆子","主子","乖乖","天使"],ans:0,exp:"逆子是主人对调皮宠物的调侃称呼。"},
+  {diff:"easy",cat:"通用",q:"养宠物的人自嘲伺候主子，叫：",options:["铲屎官","打工人","工具人","NPC"],ans:0,exp:"铲屎官是养宠人自嘲的称呼。"},
+  {diff:"easy",cat:"通用",q:"不看品牌只研究成分和功效的人，叫：",options:["成分党","颜值党","品牌党","囤货党"],ans:0,exp:"成分党优先看成分功效，不盲从品牌。"},
+  {diff:"easy",cat:"通用",q:"买东西只看外观好不好看、不管实不实用，叫：",options:["颜值党","成分党","硬核党","实用党"],ans:0,exp:"颜值党优先看外观颜值。"},
+  {diff:"easy",cat:"通用",q:"偶像被爆出负面丑闻、人设崩塌，饭圈叫：",options:["塌房","出圈","飞升","解约"],ans:0,exp:"塌房指偶像爆出负面、人设崩塌。"},
+  {diff:"easy",cat:"通用",q:"人气跌落、没人关注了，饭圈说他：",options:["糊了","红了","爆了","出圈"],ans:0,exp:"糊了指过气、没人气。"},
+  {diff:"easy",cat:"通用",q:"火出原有粉丝圈、被大众熟知，叫：",options:["出圈","塌房","糊了","闭麦"],ans:0,exp:"出圈指突破圈层、被大众广泛知道。"},
+  {diff:"easy",cat:"通用",q:"最喜欢、本命追随的偶像，粉丝叫：",options:["本命","墙头","路人","黑粉"],ans:0,exp:"本命是最喜爱的偶像；墙头是其他好感对象。"},
+  {diff:"easy",cat:"通用",q:"除本命外其他有好感的偶像，叫：",options:["墙头","本命","蒸煮","毒唯"],ans:0,exp:"墙头指临时好感的其他偶像。"},
+  {diff:"easy",cat:"通用",q:"不看稿子、临场即兴来一段说唱，叫：",options:["freestyle","battle","diss","hook"],ans:0,exp:"freestyle即即兴说唱、临场自由发挥。"},
+  {diff:"easy",cat:"通用",q:"两个人一对一对决比拼说唱，叫：",options:["battle","hook","flow","beef"],ans:0,exp:"battle是一对一即兴对战较量。"},
+  {diff:"easy",cat:"通用",q:"针对性贬低、攻击、怼某人，说唱圈叫：",options:["diss","respect","peace","hook"],ans:0,exp:"diss指针对性攻击、贬低、怼人。"},
+  {diff:"easy",cat:"通用",q:"一首说唱里最抓耳、最洗脑的记忆段落，叫：",options:["hook","verse","beat","flow"],ans:0,exp:"hook即钩子，指最洗脑抓人的记忆段落。"},
+  {diff:"easy",cat:"外网",q:"你觉得对方行为可疑、像藏着事，外网俚语会说他很：",options:["sus","mid","slay","cap"],ans:0,exp:"sus是suspicious缩写，指可疑、有鬼、像内鬼。"},
+  {diff:"easy",cat:"外网",q:"没说谎、说的是大实话，外网口语“no cap”意思是：",options:["没吹牛、真的","没戴帽子","别覆盖","没有上限"],ans:0,exp:"cap=吹牛说谎，no cap=没吹牛、说真话。"},
+  {diff:"easy",cat:"外网",q:"表现极佳、碾压全场、气场全开，外网夸赞词是：",options:["slay","mid","cap","sus"],ans:0,exp:"slay形容表现大杀四方、全场最佳。"},
+  {diff:"easy",cat:"外网",q:"觉得对方在吹牛皮说假话，外网会说他在：",options:["cap","based","vibe","rizz"],ans:0,exp:"cap=谎言吹牛。"},
+  {diff:"easy",cat:"外网",q:"形容事物一般般、不上不下没亮点，外网俚语：",options:["mid","slay","based","sus"],ans:0,exp:"mid指中等平庸、不上不下，略带贬义。"},
+  {diff:"easy",cat:"外网",q:"观点说得特别正、强烈认同对方，外网回复：",options:["based","cap","mid","vibe"],ans:0,exp:"based表达“说得对、观点正”，强烈认同。"},
+  {diff:"easy",cat:"外网",q:"两个人整体气场、感觉合得来，叫____很合：",options:["vibe","beef","flow","hook"],ans:0,exp:"vibe指氛围、气场、整体感觉。"},
+  {diff:"easy",cat:"外网",q:"突击看看对方状态、检测氛围，外网叫：",options:["vibe check","gaslight","hustle","rizz"],ans:0,exp:"vibe check即状态/氛围突击检查。"},
+  {diff:"easy",cat:"外网",q:"从朋友食物里抽一口、蹭一点好处，外网梗叫：",options:["Fanum tax","girl math","main character","villain era"],ans:0,exp:"Fanum tax指从朋友食物里“抽税”拿一口。"},
+  {diff:"easy",cat:"外网",q:"把自己当人生主角、认真生活的心态，叫____能量：",options:["main character","side character","NPC","debuff"],ans:0,exp:"main character energy即主角心态、主角能量。"},
+  {diff:"easy",cat:"土味抽象",q:"嘴上说自己精神没问题，实际快崩溃了，经典反讽是：",options:["精神状态良好","岁月静好","稳如老狗","佛系躺平"],ans:0,exp:"“精神状态良好”是反讽，实际濒临崩溃。"},
+  {diff:"easy",cat:"土味抽象",q:"离谱到极致、堪称反面教材典范，抽象圈叫：",options:["典中典","好活","绝绝子","天花板"],ans:0,exp:"典中典=经典中的经典反用，离谱反面典型。"},
+  {diff:"easy",cat:"土味抽象",q:"字面夸聪明、实际反讽人蠢不动脑子，这个反讽词是：",options:["大聪明","大智慧","小天才","智囊团"],ans:0,exp:"大聪明是反讽，实际说人蠢、考虑不周。"},
+  {diff:"easy",cat:"土味抽象",q:"自嘲误打误撞进入不属于自己的高端场合、格格不入，叫：",options:["误闯天家","如鱼得水","登堂入室","主场作战"],ans:0,exp:"误闯天家=自嘲误入高端场合、格格不入。"},
+  {diff:"easy",cat:"土味抽象",q:"全民爆火的“挖呀挖呀挖”出自哪类内容：",options:["幼儿园老师带娃唱童谣","工地挖机现场","农民种菜vlog","健身打卡视频"],ans:0,exp:"“挖呀挖”源自一段幼儿园老师带唱童谣的视频。"},
+  {diff:"easy",cat:"土味抽象",q:"夸张到离谱的炫富/整活视频，常配口号“家人们谁懂啊”，这句话属于：",options:["感叹式网络吐槽开场","商务发布会开场白","新闻联播台词","课本课文标题"],ans:0,exp:"“家人们谁懂啊”是短视频感叹式吐槽开场口头禅。"},
+  {diff:"easy",cat:"土味抽象",q:"视频里角色原地跺脚摆手、反复驱赶，这个经典动作叫：",options:["退退退","冲冲冲","六六六","停停停"],ans:0,exp:"退退退是网红跺脚摆手驱赶晦气的动作梗。"},
+  {diff:"easy",cat:"土味抽象",q:"一句话把天聊死、让人无言以对，网友吐槽这波是：",options:["聊死","聊爆","聊活","聊飞"],ans:0,exp:"聊死指话说得让人接不上、气氛冷场。"},
+  {diff:"easy",cat:"土味抽象",q:"用很夸张的表情包配文表达强烈情绪，这种表达属于：",options:["玩梗整活","严肃陈述","学术论证","官方通知"],ans:0,exp:"用表情包夸张表达情绪是典型网感玩梗方式。"},
+  {diff:"easy",cat:"土味抽象",q:"明明很普通却自我感觉良好、蜜汁自信，网友调侃：",options:["普信","高冷","低调","佛系"],ans:0,exp:"普信=普通且自信，形容蜜汁自我感觉良好。"},
+  {diff:"easy",cat:"通用",q:"刷到一条让人血压飙升的内容，他当场：",options:["血压拉满","轻松拿捏","上岸通关","佛系躺平"],ans:0,exp:"血压拉满形容被气到、情绪激动。"},
+  {diff:"easy",cat:"通用",q:"内容好笑到在工位憋笑发抖，属于：",options:["憋笑到抖","破防落泪","emo躺平","闭麦沉默"],ans:0,exp:"憋笑到抖是强忍笑意的搞笑状态。"},
+  {diff:"easy",cat:"通用",q:"他说话自带梗、张口就是段子，朋友说他：",options:["梗王附体","严肃正经","官方播报","学术发言"],ans:0,exp:"梗王附体形容张口就是梗、很会玩梗。"},
+  {diff:"easy",cat:"通用",q:"别人抛的梗他全接住、还能反抛回去，属于：",options:["接梗达人","梗都没get","潜水下线","已读不回"],ans:0,exp:"接梗达人指反应快、能接住并回抛梗。"},
+  {diff:"easy",cat:"通用",q:"满屏都是看不懂的缩写和梗，他感觉自己：",options:["脱节了","拿捏了","上岸了","碾压了"],ans:0,exp:"脱节指跟不上网络流行、和语境脱节。"},
+  {diff:"easy",cat:"通用",q:"刚学会一个新梗就到处用，属于：",options:["现学现卖","深藏不露","老梗翻新","佛系潜水"],ans:0,exp:"现学现卖指刚学会就马上拿来用。"},
+  {diff:"easy",cat:"通用",q:"一个梗被他用在完全不合适的场合，属于：",options:["梗用错地方","精准拿捏","接梗到位","梗王实锤"],ans:0,exp:"梗用错场合指语境不匹配闹笑话。"},
+  {diff:"easy",cat:"通用",q:"看到老熟人梗突然又火了，他感慨：",options:["DNA动了","彻底下线","烂尾完结","限流折叠"],ans:0,exp:"DNA动了指熟悉的记忆被唤醒。"},
+  {diff:"easy",cat:"通用",q:"听到熟悉BGM瞬间想起当年的画面，属于：",options:["回忆杀","下线躺平","白给翻车","卡bug掉线"],ans:0,exp:"回忆杀指旧事物勾起青春回忆。"},
+  {diff:"easy",cat:"通用",q:"视频里角色做出经典招牌动作，弹幕刷：",options:["DNA动了","已下线","烂尾了","限流了"],ans:0,exp:"经典动作唤起记忆也是DNA动了。"},
+  {diff:"mid",cat:"通用",q:"被别人的操作震惊到说不出话，弹幕常刷：",options:["蚌埠住了","稳如老狗","轻松拿捏","上岸成功"],ans:0,exp:"蚌埠住了=绷不住了，情绪忍不住。"},
+  {diff:"mid",cat:"通用",q:"明明很感动却嘴硬不承认，属于：",options:["嘴硬心软","直球告白","凡尔赛炫耀","躺平摆烂"],ans:0,exp:"嘴硬心软指嘴上硬、心里柔软。"},
+  {diff:"mid",cat:"通用",q:"一边骂一边继续看、嘴上嫌弃身体诚实，属于：",options:["口嫌体正直","彻底弃坑","理性退订","从容下线"],ans:0,exp:"口嫌体正直指嘴上嫌弃、行动很诚实。"},
+  {diff:"mid",cat:"通用",q:"追更时焦急等更新、反复刷新页面，属于：",options:["等更焦虑","佛系躺平","弃坑下线","收藏吃灰"],ans:0,exp:"等更焦虑指追更时盼更新心切。"},
+  {diff:"mid",cat:"通用",q:"剧情太上头、一口气刷完整季，属于：",options:["一口气刷完","断断续续看","弃坑下线","挂机潜水"],ans:0,exp:"一口气刷完指内容上头停不下来。"},
+  {diff:"mid",cat:"通用",q:"看完结局心情久久走不出来，属于：",options:["剧情后劲大","轻松上岸","无感下线","白给翻车"],ans:0,exp:"后劲大指看完后情绪久久不散。"},
+  {diff:"mid",cat:"通用",q:"为角色意难平、站不起来，属于：",options:["意难平","稳赢通关","拿捏全场","轻松上岸"],ans:0,exp:"意难平指对结局/人物遭遇耿耿于怀。"},
+  {diff:"mid",cat:"通用",q:"两人互动CP感拉满、观众自发磕糖，属于：",options:["嗑CP","对线互撕","已读不回","挂机潜水"],ans:0,exp:"嗑CP指观众喜欢并追捧角色配对。"},
+  {diff:"hell",cat:"通用",q:"把网友互动细节反复分析解读、过度脑补，属于：",options:["过度解读","人间清醒","佛系随缘","直球表态"],ans:0,exp:"过度解读指把细节放大联想出含义。"},
+  {diff:"hell",cat:"通用",q:"一个梗在不同语境下意思完全相反，使用时要注意：",options:["分清语境","随便乱用","照搬到底","下线不用"],ans:0,exp:"梗的含义随语境变化，误用会闹误会。"},
+  {diff:"hell",cat:"通用",q:"新人不懂圈内黑话、被老玩家调侃是：",options:["小白入坑","老玩家","梗王","元老"],ans:0,exp:"小白入坑指刚接触、不懂行话。"},
+  {diff:"hell",cat:"通用",q:"在群里接不上大家的梗、被晾在一边，属于：",options:["插不上话","carry全场","气氛担当","梗王附体"],ans:0,exp:"插不上话指跟不上话题节奏。"},
+  {diff:"mid",cat:"外网",q:"外网把很会穿搭、造型亮眼的人称为：",options:["fashion icon","NPC","dead weight","mid player"],ans:0,exp:"fashion icon指穿搭标杆、时尚达人。"},
+  {diff:"mid",cat:"外网",q:"外网形容一段友情坚固、不离不弃，叫：",options:["ride or die","cringe","beef off","mid tier"],ans:0,exp:"ride or die指生死相随的铁友。"},
+  {diff:"hell",cat:"外网",q:"外网游戏里全场最佳、数据最亮眼的玩家，叫：",options:["MVP","NPC","feeder","camping bot"],ans:0,exp:"MVP即本局最有价值玩家。"},
+  {diff:"hell",cat:"外网",q:"外网视频里主角耍帅摆酷的慢镜头，叫：",options:["slow mo","news cut","lecture clip","dry record"],ans:0,exp:"slow mo即慢动作镜头。"},
+  {diff:"mid",cat:"说唱",q:"说唱歌手在作品里炫耀财富地位的风格，叫：",options:["炫耀说唱","民谣抒情","公益说唱","纪录片旁白"],ans:0,exp:"炫耀说唱常堆砌豪车金链等元素。"},
+  {diff:"hell",cat:"说唱",q:"多人合作曲目里各自分配段落轮流演唱，叫：",options:["接力演唱","单人独唱","广告口播","幕后旁白"],ans:0,exp:"接力演唱即cypher式分段轮唱。"},
+  {diff:"mid",cat:"三坑消费",q:"裙子版型宽松、遮肉显瘦，三坑圈评价：",options:["友好包容","显胖臃肿","瑕疵严重","尺码错乱"],ans:0,exp:"友好包容指版型对身材宽容度高。"},
+  {diff:"hell",cat:"三坑消费",q:"新品首发限量、需要抢购排队下单，叫：",options:["限量抢购","现货白菜","再贩返场","打包捆绑"],ans:0,exp:"限量抢购指数量有限需抢。"},
+  {diff:"mid",cat:"美妆",q:"口红叠涂后调出专属新色号，美妆圈叫：",options:["叠涂试色","卸妆清洁","刷酸焕肤","过度护肤"],ans:0,exp:"叠涂指叠加不同口红调出颜色。"},
+  {diff:"hell",cat:"美妆",q:"护肤后皮肤通透有光泽的健康状态，叫：",options:["皮肤状态在线","烂脸爆痘","卡粉浮粉","假面厚重"],ans:0,exp:"状态在线指皮肤状态好、通透有光。"},
+  {diff:"mid",cat:"萌宠",q:"猫咪把肚皮朝上翻躺露出来，是在向主人：",options:["撒娇亲近","发起攻击","表示嫌弃","准备离家"],ans:0,exp:"露肚皮是猫咪放松撒娇、信任主人。"},
+  {diff:"hell",cat:"萌宠",q:"宠物听到开罐头声音立刻飞奔跑来，属于：",options:["条件反射","生病萎靡","冷漠无视","倒地睡觉"],ans:0,exp:"条件反射指被食物声训练出的反应。"},
+  {diff:"mid",cat:"饭圈",q:"粉丝为偶像创作的同人图文、二创视频，叫：",options:["同人产粮","官方周边","新闻通稿","商务合同"],ans:0,exp:"同人产粮指粉丝自制二创内容。"},
+  {diff:"hell",cat:"饭圈",q:"偶像公开恋情/结婚消息，粉丝群体反应激烈，饭圈叫：",options:["塌房地震","固粉加成","出圈利好","营业增温"],ans:0,exp:"偶像恋情消息常被粉丝视为塌房事件。"},
+  {diff:"mid",cat:"影视综艺",q:"综艺嘉宾之间自然熟悉、互动有趣，观众评价氛围：",options:["氛围融洽","尴尬冷场","剧本生硬","广告密集"],ans:0,exp:"氛围融洽指嘉宾互动自然舒服。"},
+  {diff:"hell",cat:"影视综艺",q:"二创视频把不同角色剪成对手戏、强行配对，叫：",options:["拉郎剪辑","官方续集","新闻纪实","纪录片拍摄"],ans:0,exp:"拉郎指把无关角色强行配对剪辑。"},
+  {diff:"mid",cat:"电竞",q:"对局里一方经济经验全面领先、形成压制，叫：",options:["优势碾压","劣势僵持","白给掉线","挂机OB"],ans:0,exp:"优势碾压指实力资源全面占优。"},
+  {diff:"hell",cat:"电竞",q:"比赛中队伍突然调整战术、改变打法，解说称之为：",options:["战术变阵","挂机掉线","原地白给","赛前复盘"],ans:0,exp:"战术变阵指比赛中途调整策略。"},
+  {diff:"mid",cat:"童年游戏",q:"游戏里完成成就后弹出的荣誉提示，叫：",options:["成就弹窗","掉线通知","背包已满","对局结算"],ans:0,exp:"成就弹窗是解锁成就时的提示。"},
+  {diff:"hell",cat:"童年游戏",q:"免费玩家靠时间积累追上付费玩家进度，游戏圈叫：",options:["零氪追平","重氪碾压","代练躺赢","炸鱼虐新"],ans:0,exp:"零氪追平指不花钱也能靠时间跟上。"},
+  {diff:"mid",cat:"土味抽象",q:"视频里用极度夸张的表情管理制造笑点，属于：",options:["表情整活","严肃播报","新闻采访","课堂朗读"],ans:0,exp:"表情整活指靠夸张表情制造节目效果。"},
+  {diff:"hell",cat:"土味抽象",q:"把日常对话剪成押韵顺口溜、魔性上头，属于：",options:["押韵整活","学术朗诵","新闻联播","商务谈判"],ans:0,exp:"押韵整活指硬凑韵脚的魔性创作。"},
+  {diff:"mid",cat:"外网",q:"外网形容某人低调实力强、不张扬，叫：",options:["low key","based loud","slay loud","cap hard"],ans:0,exp:"low key指低调、不张扬。"},
+  {diff:"hell",cat:"外网",q:"外网把过度狂热追捧某明星的粉丝称为：",options:["stan","casual viewer","NPC","critic"],ans:0,exp:"stan指狂热死忠粉丝。"},
+  {diff:"mid",cat:"说唱",q:"说唱歌曲里低沉厚重的808贝斯线条，属于哪类风格标志：",options:["trap标志","民谣标志","古典标志","爵士标志"],ans:0,exp:"808贝斯是trap陷阱说唱标志。"},
+  {diff:"hell",cat:"说唱",q:"即兴现场多人轮流开口、互相接话的派对形式，叫：",options:["cypher派对","录音棚专辑","广告发布会","签售见面会"],ans:0,exp:"cypher是多人接力即兴说唱派对。"},
+  {diff:"mid",cat:"三坑消费",q:"服饰收到后核对吊牌、尺码和配件是否齐全，叫：",options:["验货确认","盲目收货","打包卖出","瑕疵处理"],ans:0,exp:"验货确认指收货时检查商品状态。"},
+  {diff:"hell",cat:"三坑消费",q:"二手交易里把商品状态拍成照片视频发给买家，叫：",options:["状态实拍","官图宣传","预售海报","打包捆绑"],ans:0,exp:"状态实拍指向买家展示真实成色。"},
+  {diff:"mid",cat:"美妆",q:"粉底选得贴合肤色、看不出明显化妆痕迹，叫：",options:["底妆自然","假面厚重","卡粉斑驳","浮粉脱妆"],ans:0,exp:"底妆自然指妆面贴合不假面。"},
+  {diff:"hell",cat:"美妆",q:"护肤产品用后皮肤泛红刺痛、出现不耐受反应，叫：",options:["不耐受","建立耐受","维稳成功","屏障健康"],ans:0,exp:"不耐受指皮肤对成分产生排斥反应。"},
+  {diff:"mid",cat:"萌宠",q:"两只宠物互相舔毛、依偎睡觉，关系看起来：",options:["很亲密","互相敌对","彼此疏远","准备打架"],ans:0,exp:"互相舔毛依偎是宠物亲密的表现。"},
+  {diff:"hell",cat:"萌宠",q:"宠物拆家啃坏家具，主人无奈收拾残局，吐槽它是：",options:["拆家能手","乖巧天使","温顺听话","安静宝宝"],ans:0,exp:"拆家能手指爱啃咬破坏家具的宠物。"},
+  {diff:"mid",cat:"火影",q:"火影手游里角色普通攻击连段打出的伤害节奏，叫：",options:["普攻连招","回城挂机","日常签到","背包整理"],ans:0,exp:"普攻连招指普通攻击的连续段。"},
+  {diff:"hell",cat:"火影",q:"对战中被对手抓住破绽一套带走，玩家吐槽：",options:["被连招带走","轻松碾压","满血起飞","稳健防守"],ans:0,exp:"被带走指被对手一套连招击败。"},
+  {diff:"mid",cat:"第五人格",q:"求生者分头破译密码机、推进通电进度，叫：",options:["修机推进","守椅防守","追击找人","地窖逃生"],ans:0,exp:"修机指破译密码机推进通电。"},
+  {diff:"hell",cat:"第五人格",q:"监管者抓住求生者挂上椅子、阻止队友救援，属于：",options:["挂椅防守","压机待命","抱团修机","地窖逃跑"],ans:0,exp:"挂椅防守指监管挂人后守椅。"},
+  {diff:"easy",cat:"通用",q:"表情包里配文“笑不活了”，表达的情绪是：",options:["极度好笑","极度悲伤","生气愤怒","无聊犯困"],ans:0,exp:"笑不活了=笑死了，形容极度好笑。"},
+  {diff:"easy",cat:"通用",q:"看到离谱操作忍不住发“666”，意思是：",options:["厉害佩服","菜得下饭","快撤退","别再说了"],ans:0,exp:"666是夸赞厉害、佩服。"},
+  {diff:"easy",cat:"通用",q:"对方操作很秀，弹幕齐刷刷刷：",options:["666","退退退","阿巴阿巴","难评"],ans:0,exp:"666用于赞叹操作精彩。"},
+  {diff:"mid",cat:"通用",q:"事情顺利到不像话，网友感叹：",options:["这波稳了","这下寄了","翻车在即","下线躺平"],ans:0,exp:"这波稳了形容局势有利、很有把握。"},
+  {diff:"mid",cat:"通用",q:"局势不明朗、结果悬着，网友说：",options:["悬了","稳了","拿捏了","通关了"],ans:0,exp:"悬了指结果不确定、可能要输。"},
+  {diff:"mid",cat:"通用",q:"最后关头完成逆转、反败为胜，属于：",options:["逆风翻盘","白给下线","一路躺平","挂机OB"],ans:0,exp:"逆风翻盘指劣势下反败为胜。"},
+  {diff:"hell",cat:"通用",q:"把别人的善意梗当成攻击、过度敏感对线，属于：",options:["敏感对线","理性吃瓜","人间清醒","佛系随缘"],ans:0,exp:"敏感对线指过度解读并挑起争论。"},
+  {diff:"hell",cat:"通用",q:"一个梗的出处和原意被后来者遗忘，只剩表面用法，属于：",options:["梗原意流失","梗持续封神","梗出圈正统","梗新增解析"],ans:0,exp:"梗原意流失指出处含义被淡忘。"},
+  {diff:"mid",cat:"外网",q:"外网形容两人性格截然相反却很合得来，叫：",options:["opposite vibes","same mid","cap cap","sus sus"],ans:0,exp:"opposite vibes指反差互补的气场。"},
+  {diff:"hell",cat:"外网",q:"外网把模仿热门趋势跟拍的跟风作品叫：",options:["trend copy","original work","news report","official doc"],ans:0,exp:"trend copy指跟风复刻热门趋势。"},
+  {diff:"mid",cat:"童年游戏",q:"游戏里消耗一次生命/机会重新挑战当前关卡，叫：",options:["复活重试","通关下线","背包整理","成就领取"],ans:0,exp:"复活重试指失败后重打当前关。"},
+  {diff:"hell",cat:"童年游戏",q:"游戏内隐藏属性加成、被动提高某项能力，叫：",options:["被动加成","主动技能","限时任务","掉线惩罚"],ans:0,exp:"被动加成指自动生效的属性提升。"},
+  {diff:"mid",cat:"电竞",q:"对局里队友配合失误送掉优势，赛后互相埋怨，属于：",options:["互相甩锅","默契协作","战术执行","赛前训练"],ans:0,exp:"互相甩锅指失败后推卸责任。"},
+  {diff:"hell",cat:"电竞",q:"选手状态长期稳定、极少失误，解说形容发挥：",options:["稳定可靠","手感冰凉","连续白给","心态炸裂"],ans:0,exp:"稳定可靠指发挥平稳少失误。"},
+  {diff:"easy",cat:"土味抽象",q:"视频里主播热情招呼“家人们点点关注”，属于：",options:["求关注整活","严肃新闻","学术讲座","官方公告"],ans:0,exp:"求关注是主播常见的网感互动话术。"},
+  {diff:"mid",cat:"土味抽象",q:"评论区有人发“挖呀挖”式魔性歌词接龙，属于：",options:["魔性接龙","理性科普","新闻跟评","学术留言"],ans:0,exp:"魔性接龙指跟唱复读洗脑歌词。"},
+  {diff:"hell",cat:"土味抽象",q:"抽象梗越玩越怪、含义脱离原本，观众评价这波：",options:["抽象到家","严谨正统","官方标准","学术规范"],ans:0,exp:"抽象到家指离谱程度拉满。"},
+  {diff:"easy",cat:"三坑消费",q:"买之前先看别人上身实拍再决定，叫：",options:["参考返图","闭眼下单","盲目跟风","冲动囤货"],ans:0,exp:"参考返图指看买家实拍再购买。"},
+  {diff:"mid",cat:"三坑消费",q:"商品价格被炒得很高、舍不得出手，二手圈叫：",options:["高价难出","白菜甩卖","现货掉落","打包捆绑"],ans:0,exp:"高价难出指定价高、转手困难。"},
+  {diff:"easy",cat:"美妆",q:"化妆前先把脸洗干净、做好保湿，属于：",options:["妆前准备","卸妆收尾","定妆完成","刷酸焕肤"],ans:0,exp:"妆前准备指上妆前的护肤打底。"},
+  {diff:"mid",cat:"美妆",q:"看到网红同款口红被种草，先收藏等降价，属于：",options:["蹲价收藏","冲动秒买","退货退款","踩雷避雷"],ans:0,exp:"蹲价收藏指先收藏等合适价格。"},
+  {diff:"easy",cat:"萌宠",q:"小狗看见主人回家兴奋摇尾巴扑过来，表现出：",options:["热情欢迎","生气戒备","冷漠无视","害怕躲藏"],ans:0,exp:"摇尾巴扑人是狗狗热情迎接主人。"},
+  {diff:"mid",cat:"萌宠",q:"猫咪玩逗猫棒扑跳抓咬，属于哪类行为：",options:["捕猎玩耍","生病萎靡","午睡休息","攻击主人"],ans:0,exp:"扑逗猫棒是猫咪模拟捕猎的玩耍行为。"},
+  {diff:"easy",cat:"饭圈",q:"粉丝看到偶像新物料立刻转发扩散，属于：",options:["应援扩散","脱粉回踩","私下挂机","二手出物"],ans:0,exp:"应援扩散指转发支持偶像内容。"},
+  {diff:"mid",cat:"饭圈",q:"路人刷到偶像内容产生好感，慢慢关注，属于：",options:["路转好感","粉转黑","回踩下线","爬墙换人"],ans:0,exp:"路转好感指路人逐渐产生兴趣。"},
+  {diff:"easy",cat:"影视综艺",q:"综艺开场嘉宾自我介绍、暖场破冰，叫：",options:["开场破冰","赛后复盘","剧情结局","广告插播"],ans:0,exp:"开场破冰指节目开始缓和气氛互相认识。"},
+  {diff:"mid",cat:"影视综艺",q:"影视片段被截成GIF反复传播的搞笑瞬间，叫：",options:["名场面动图","正片长镜头","纪录片素材","新闻截图"],ans:0,exp:"名场面动图指出圈搞笑片段做成GIF。"},
+  {diff:"easy",cat:"电竞",q:"对局里拿下击杀后系统提示音响起，队友刷：",options:["漂亮","下线","白给","挂机"],ans:0,exp:"漂亮是队友拿下好操作后的赞叹。"},
+  {diff:"mid",cat:"电竞",q:"劣势局不放弃、慢慢找机会翻盘，解说形容队伍：",options:["韧性十足","早早投降","挂机摆烂","白给送头"],ans:0,exp:"韧性十足指劣势下坚持不放弃。"},
+  {diff:"easy",cat:"童年游戏",q:"游戏里捡到血包/道具恢复状态，叫：",options:["拾取补给","卖掉装备","下线存档","挑战Boss"],ans:0,exp:"拾取补给指捡取恢复状态的道具。"},
+  {diff:"mid",cat:"童年游戏",q:"反复刷同一关卡积累资源经验，游戏圈叫：",options:["刷资源","通关下线","挂机离线","挑战隐藏"],ans:0,exp:"刷资源指重复关卡积累材料经验。"},
+  {diff:"easy",cat:"外网",q:"外网对某事表示赞同认可，会说“bet”，意思接近：",options:["没问题、就这么定","打赌输了","闭嘴拒绝","离线离开"],ans:0,exp:"bet表示赞同、一言为定。"},
+  {diff:"mid",cat:"外网",q:"外网形容某人状态拉满、自信帅气，说他很：",options:["confident","cringe","mid","sus"],ans:0,exp:"confident指自信、状态在线。"},
+  {diff:"easy",cat:"说唱",q:"说唱表演带动现场气氛、观众跟着律动，叫：",options:["带动现场","冷场沉默","广告口播","新闻播报"],ans:0,exp:"带动现场指演出气氛热烈有互动。"},
+  {diff:"hell",cat:"说唱",q:"两首曲目节奏和歌词互相呼应、组成系列，叫：",options:["联动曲目","单人单曲","广告配乐","片尾彩蛋"],ans:0,exp:"联动曲目指作品间相互呼应。"},
+  {diff:"mid",cat:"通用",q:"连续答对多题后手感火热、越答越顺，属于：",options:["手感火热","手感冰凉","白给下线","躺平摆烂"],ans:0,exp:"手感火热指连续发挥好、状态顺。"},
+  {diff:"hell",cat:"通用",q:"答题时凭直觉秒选、结果蒙对，属于：",options:["蒙对了","稳操胜券","拿捏全场","攻略通关"],ans:0,exp:"蒙对指靠猜选中正确答案。"},
+  {diff:"easy",cat:"通用",q:"朋友发来一个梗图，他没看懂反问：",options:["这啥意思","666","拿捏了","上岸了"],ans:0,exp:"没get梗时会反问含义。"},
+  {diff:"mid",cat:"通用",q:"看懂梗之后恍然大悟、大笑，属于：",options:["get到了","脱节了","下线了","卡bug了"],ans:0,exp:"get到了指理解了梗点含义。"},
+  {diff:"hell",cat:"通用",q:"同一句梗在不同圈层有不同含义，玩梗时最需要注意：",options:["区分语境别误用","到处乱套用","只看字面意思","下线不用"],ans:0,exp:"跨圈层用梗要先确认含义和语境。"},
+  {diff:"mid",cat:"电竞",q:"对局结束后展示双方击杀、经济等数据统计，叫：",options:["战绩面板","新手教程","背包仓库","签到日历"],ans:0,exp:"战绩面板展示对局数据统计。"},
+  {diff:"hell",cat:"电竞",q:"比赛里选手用极限操作躲开致命技能，解说惊呼：",options:["极限走位","白给倒地","挂机下线","原地回城"],ans:0,exp:"极限走位指操作惊险躲过技能。"},
+  {diff:"easy",cat:"童年游戏",q:"游戏里失败后自动回到上一存档点重来，叫：",options:["回到存档","直接通关","卖掉背包","挑战Boss"],ans:0,exp:"回到存档指读档回到之前进度。"},
+  {diff:"mid",cat:"童年游戏",q:"把角色装备道具搭配到最优方案，游戏圈叫：",options:["配装优化","离线挂机","日常签到","下线存档"],ans:0,exp:"配装优化指调整装备搭配提升实力。"},
+  {diff:"easy",cat:"土味抽象",q:"视频里角色摆出自认为帅气的姿势，观众弹幕：",options:["整活到位","严肃专业","新闻报道","学术讲解"],ans:0,exp:"整活到位指节目效果拉满。"},
+  {diff:"mid",cat:"土味抽象",q:"主播临场即兴接梗、反应飞快，属于：",options:["临场反应快","冷场翻车","念稿僵硬","下线沉默"],ans:0,exp:"临场反应快指即兴接梗能力强。"},
+  {diff:"easy",cat:"三坑消费",q:"收到衣服先试穿看尺码合身与否，叫：",options:["试穿验货","打包卖出","退货退款","瑕疵处理"],ans:0,exp:"试穿验货指收到后上身检查合身度。"},
+  {diff:"hell",cat:"三坑消费",q:"二手商品描述“九新”指的是：",options:["成色很新、几乎没穿","全新吊牌","严重破损","明显瑕疵"],ans:0,exp:"九新形容成色很新、使用痕迹轻微。"},
+  {diff:"easy",cat:"美妆",q:"用散粉/定妆喷雾固定妆容，防止出油脱妆，叫：",options:["定妆锁妆","卸妆清洁","刷酸去角质","叠加猛药"],ans:0,exp:"定妆锁妆指固定妆容减少脱妆。"},
+  {diff:"mid",cat:"美妆",q:"换季皮肤敏感泛红，护肤重点应先：",options:["舒缓维稳","猛药刷酸","频繁去角质","叠加多层精华"],ans:0,exp:"敏感季先舒缓维稳、别乱叠猛药。"},
+  {diff:"mid",cat:"萌宠",q:"宠物被陌生事物吓到后炸毛弓背，属于：",options:["受惊戒备","放松信任","开心玩耍","撒娇亲近"],ans:0,exp:"炸毛弓背是宠物受惊戒备的表现。"},
+  {diff:"hell",cat:"萌宠",q:"宠物在固定点位大小便训练成功，主人评价它：",options:["很乖懂事","拆家调皮","乱拉乱尿","生病萎靡"],ans:0,exp:"定点如厕成功说明宠物乖巧听话。"},
+  {diff:"easy",cat:"火影",q:"火影手游对战开始前双方选人博弈，叫：",options:["选角博弈","赛后复盘","挂机签到","背包整理"],ans:0,exp:"选角博弈指对战前挑选角色。"},
+  {diff:"mid",cat:"火影",q:"对战中抓住对手技能空档发起反击，属于：",options:["抓破绽反击","满血挂机","白给倒地","原地回城"],ans:0,exp:"抓破绽指抓住对手空档反击。"},
+  {diff:"mid",cat:"第五人格",q:"求生者修好密码机、开启大门逃生通道，叫：",options:["开机逃生","守椅防守","追击找人","上椅等待"],ans:0,exp:"开机逃生指通电开门逃出庄园。"},
+  {diff:"hell",cat:"第五人格",q:"最后一人靠地窖独自逃脱翻盘，属于：",options:["地窖逃生","四抓落败","上椅被守","压机等待"],ans:0,exp:"地窖逃生指最后求生者从地窖溜走。"},
+  {diff:"easy",cat:"外网",q:"外网觉得某件事很离谱、难以置信，常回复“fr”，意思是：",options:["真的、确实","虚假骗人","离线离开","闭嘴拒绝"],ans:0,exp:"fr=for real，表示真的、确实。"},
+  {diff:"mid",cat:"外网",q:"外网形容某人魅力碾压全场、光芒四射，叫：",options:["charisma","NPC","dead weight","mid"],ans:0,exp:"charisma指个人魅力、气场光环。"},
+  {diff:"easy",cat:"说唱",q:"说唱演出前放的铺垫伴奏节拍，叫：",options:["开场beat","outro间奏","广告口播","片尾彩蛋"],ans:0,exp:"开场beat是演出前的伴奏铺垫。"},
+  {diff:"mid",cat:"说唱",q:"对说唱作品的节奏韵律感到舒服，听众评价flow：",options:["很顺耳","很拗口","很平淡","很生硬"],ans:0,exp:"flow顺耳指节奏韵律流畅好听。"},
+  {diff:"mid",cat:"通用",q:"朋友吐槽完烦心事，你用梗图安慰他，属于：",options:["情绪安抚","对线互撕","已读不回","挂机潜水"],ans:0,exp:"用梗图安慰是提供情绪价值。"},
+  {diff:"hell",cat:"通用",q:"长期在网上冲浪积累的梗量和接梗速度，网友称之为：",options:["冲浪浓度","游戏段位","钱包余额","签到天数"],ans:0,exp:"冲浪浓度指掌握梗的数量和熟练程度。"},
+  {diff:"easy",cat:"通用",q:"他刷到一个新梗，立刻收藏进表情包备用，属于：",options:["存梗备用","弃坑下线","已读不回","挂机潜水"],ans:0,exp:"存梗备用指收藏梗图以后聊天用。"},
+  {diff:"easy",cat:"通用",q:"群里有人发了个冷笑话，全场沉默，属于：",options:["冷场翻车","气氛火热","666刷屏","梗王实锤"],ans:0,exp:"冷场翻车指笑话不好笑、气氛尴尬。"},
+  {diff:"easy",cat:"通用",q:"他接梗速度飞快、反应比谁都快，朋友说他：",options:["网感在线","脱节下线","潜水挂机","已读不回"],ans:0,exp:"网感在线指对网络梗反应快、很懂。"},
+  {diff:"mid",cat:"通用",q:"明明是老梗被新人当成新梗发出来，老人在评论区：",options:["默默围观","疯狂对线","退群拉黑","挂机下线"],ans:0,exp:"老人围观新人玩老梗是常见网络场景。"},
+  {diff:"mid",cat:"通用",q:"一个梗被玩到烂大街、看腻了，网友评价：",options:["玩腻了","新鲜出炉","封神出圈","刚入坑"],ans:0,exp:"玩腻了指梗被过度使用失去新鲜感。"},
+  {diff:"hell",cat:"通用",q:"不同圈层对同一个词理解不同，跨圈聊天容易：",options:["产生误会","达成共识","无缝衔接","默契满分"],ans:0,exp:"跨圈层黑话含义不同，容易误解。"},
+  {diff:"easy",cat:"外网",q:"外网夸人长得好看、很有魅力，会说：",options:["good looking","mid cap","sus off","NPC mode"],ans:0,exp:"good looking指好看、有魅力。"},
+  {diff:"mid",cat:"外网",q:"外网形容内容让人看得很放松、很治愈，叫：",options:["chill","cringe","beef","feeding"],ans:0,exp:"chill指放松惬意、不紧绷。"},
+  {diff:"hell",cat:"外网",q:"外网把跟风复制粘贴的套路化内容叫：",options:["copied trend","original art","news report","official doc"],ans:0,exp:"copied trend指照搬跟风的套路内容。"},
+  {diff:"easy",cat:"说唱",q:"说唱歌曲副歌部分重复洗脑、容易跟唱，叫：",options:["洗脑hook","枯燥verse","安静beat","片尾outro"],ans:0,exp:"洗脑hook指副歌记忆点强、好跟唱。"},
+  {diff:"mid",cat:"说唱",q:"说唱现场观众跟着节奏拍手互动，属于：",options:["现场互动","冷场沉默","广告口播","新闻播报"],ans:0,exp:"现场互动指观众和演出节奏呼应。"},
+  {diff:"easy",cat:"三坑消费",q:"商品页面标注“现货秒发”，意思是：",options:["有库存立刻发货","需等工期","预售排队","绝版不再卖"],ans:0,exp:"现货秒发指有库存、下单即发。"},
+  {diff:"mid",cat:"三坑消费",q:"二手交易里买家询问商品细节、成色，属于：",options:["咨询成色","直接下单","打包捆绑","退货退款"],ans:0,exp:"咨询成色指买前了解商品新旧程度。"},
+  {diff:"easy",cat:"美妆",q:"化妆时用眉笔勾勒眉形，属于哪一步：",options:["画眉","卸妆","定妆","刷酸"],ans:0,exp:"画眉指用眉笔修整描画眉毛。"},
+  {diff:"mid",cat:"美妆",q:"不同肤质选择不同保湿力度的产品，属于：",options:["按需选品","盲目跟风","叠加猛药","过度清洁"],ans:0,exp:"按需选品指根据肤质挑合适产品。"},
+  {diff:"easy",cat:"萌宠",q:"猫咪打呼噜发出舒服的咕噜声，说明它：",options:["放松愉悦","生气发怒","害怕发抖","生病难受"],ans:0,exp:"咕噜呼噜是猫咪放松愉悦的表现。"},
+  {diff:"mid",cat:"萌宠",q:"狗狗把玩具叼到主人面前求陪玩，属于：",options:["邀玩互动","生气示威","害怕躲藏","拆家破坏"],ans:0,exp:"叼玩具求玩是狗狗邀请互动。"},
+  {diff:"easy",cat:"饭圈",q:"粉丝在评论区统一刷应援口号，属于：",options:["控评应援","私下挂机","脱粉回踩","二手出物"],ans:0,exp:"控评应援指粉丝统一话术刷评论。"},
+  {diff:"mid",cat:"饭圈",q:"偶像作品数据表现亮眼、排名靠前，饭圈称之为：",options:["数据能打","糊了塌房","回踩下线","爬墙换人"],ans:0,exp:"数据能打指作品销量热度表现好。"},
+  {diff:"easy",cat:"影视综艺",q:"节目里嘉宾完成挑战获得奖励道具，叫：",options:["领取奖励","剧情杀","BE结局","OOC崩塌"],ans:0,exp:"领取奖励指完成任务获得奖品。"},
+  {diff:"mid",cat:"影视综艺",q:"影视里主角陷入两难抉择的纠结桥段，叫：",options:["抉择桥段","开场花絮","广告插播","片尾字幕"],ans:0,exp:"抉择桥段指角色面临两难选择。"},
+  {diff:"easy",cat:"电竞",q:"对局里队友互相提醒敌人位置，属于：",options:["报点沟通","挂机沉默","白给送头","离线OB"],ans:0,exp:"报点指队友通报对手位置信息。"},
+  {diff:"mid",cat:"电竞",q:"队伍集合打一波关键团战争夺资源，叫：",options:["团战争夺","各自带线","挂机回城","赛后复盘"],ans:0,exp:"团战争夺指多人集合交战抢资源。"},
+  {diff:"easy",cat:"童年游戏",q:"游戏里捡到金币/经验值提升角色，叫：",options:["拾取成长","卖掉装备","下线存档","挑战Boss"],ans:0,exp:"拾取成长指捡资源提升角色。"},
+  {diff:"mid",cat:"童年游戏",q:"反复挑战高难度关卡直到通关，游戏圈叫：",options:["反复攻关","躺平下线","挂机离线","日常签到"],ans:0,exp:"反复攻关指不断重试直到过关。"},
+  {diff:"easy",cat:"土味抽象",q:"视频里主播用夸张语气喊口号带动气氛，属于：",options:["气氛整活","严肃播报","学术讲解","新闻采访"],ans:0,exp:"气氛整活指用夸张方式带动观众情绪。"},
+  {diff:"mid",cat:"土味抽象",q:"评论区用表情包接龙回应楼主，属于：",options:["表情包互动","正式公文","学术留言","新闻跟评"],ans:0,exp:"表情包互动是评论区常见玩梗方式。"},
+  {diff:"easy",cat:"通用",q:"题目答对后心情爽快、成就感拉满，属于：",options:["答题爽感","挫败沮丧","emo躺平","下线沉默"],ans:0,exp:"答题爽感指答对后的成就感。"},
+  {diff:"mid",cat:"通用",q:"连续几题都答错、心态受到影响，属于：",options:["心态受挫","手感火热","稳赢通关","拿捏全场"],ans:0,exp:"心态受挫指连续失误后信心下降。"},
+  {diff:"hell",cat:"通用",q:"答题速度越快得分加成越高，这种设计奖励的是：",options:["反应速度","答题数量","在线时长","充值金额"],ans:0,exp:"速度加权奖励快速作答的反应力。"},
+  {diff:"easy",cat:"外网",q:"外网把很赞的事物称为“fire”，意思接近：",options:["很燃很火","很凉很糟","离线下线","平庸普通"],ans:0,exp:"fire形容火热、很出彩。"},
+  {diff:"mid",cat:"说唱",q:"说唱作品里一段连贯多变的快嘴节奏，叫：",options:["快嘴flow","安静间奏","广告旁白","片尾字幕"],ans:0,exp:"快嘴flow指节奏密集快速的说唱段落。"},
+  {diff:"mid",cat:"三坑消费",q:"商品描述里“全新未拆”指的是：",options:["包装都没拆开","穿过几次","有明显瑕疵","二手成色旧"],ans:0,exp:"全新未拆指原包装未打开使用。"},
+  {diff:"mid",cat:"美妆",q:"用修容产品修饰脸部轮廓、制造立体阴影，叫：",options:["修容打影","卸妆清洁","定妆散粉","刷酸焕肤"],ans:0,exp:"修容指用阴影色修饰脸型轮廓。"},
+  {diff:"easy",cat:"萌宠",q:"宠物撒娇翻滚露出肚皮求抚摸，主人觉得它：",options:["很黏人","很凶暴","很冷漠","很萎靡"],ans:0,exp:"翻滚露肚求摸是黏人撒娇表现。"},
+  {diff:"mid",cat:"饭圈",q:"粉丝剪辑偶像高光片段做安利视频，属于：",options:["高光安利","塌房回踩","离线挂机","二手出物"],ans:0,exp:"高光安利指剪精彩片段推荐偶像。"},
+  {diff:"mid",cat:"影视综艺",q:"影视剧配乐烘托情绪、推动剧情，叫：",options:["配乐烘托","广告插入","片尾字幕","花絮片段"],ans:0,exp:"配乐烘托指BGM带动观众情绪。"},
+  {diff:"mid",cat:"电竞",q:"对局里残血队友赶来支援帮助，属于：",options:["及时支援","白给掉线","挂机OB","各自带线"],ans:0,exp:"及时支援指队友赶来协助作战。"},
+  {diff:"easy",cat:"童年游戏",q:"游戏里解锁新地图区域探索，叫：",options:["解锁地图","回到存档","卖掉道具","领取成就"],ans:0,exp:"解锁地图指开放新探索区域。"},
+  {diff:"hell",cat:"童年游戏",q:"游戏内隐藏的高难度挑战关卡，通关后给稀有奖励，叫：",options:["隐藏挑战","新手教程","日常签到","离线挂机"],ans:0,exp:"隐藏挑战指难度高的隐藏奖励关卡。"},
+  {diff:"mid",cat:"土味抽象",q:"博主把普通日常拍出戏剧冲突感博眼球，属于：",options:["戏剧化整活","纪实记录","新闻调查","学术分析"],ans:0,exp:"戏剧化整活指放大冲突制造看点。"},
+  {diff:"easy",cat:"通用",q:"看到题目选项里有明显离谱答案，排除它属于：",options:["排除错误项","盲猜全选","直接放弃","挂机下线"],ans:0,exp:"排除法指先去掉明显错误选项。"},
+  {diff:"mid",cat:"通用",q:"两个选项纠结很久才选定，属于：",options:["犹豫纠结","果断秒选","轻松拿捏","稳赢通关"],ans:0,exp:"犹豫纠结指选项间难以下决定。"},
+  {diff:"hell",cat:"通用",q:"题目考的是梗的出处圈层，而不是现实知识，这种题属于：",options:["梗题","知识问答题","新闻常识题","专业考证题"],ans:0,exp:"梗题围绕网络梗本身出题，场景可生活化。"},
+  {diff:"mid",cat:"电竞",q:"比赛里一方主动放弃、提前认输结束对局，叫：",options:["投降认输","坚持翻盘","挂机OB","赛后握手"],ans:0,exp:"投降认输指主动放弃比赛。"},
+  {diff:"easy",cat:"外网",q:"外网对好内容点赞支持，会说“slay”，意思接近：",options:["太绝了","太烂了","下线吧","闭嘴吧"],ans:0,exp:"slay夸赞表现惊艳、全场最佳。"},
+  {diff:"mid",cat:"说唱",q:"说唱里用来区分正歌段落和副歌的过渡小节，叫：",options:["过渡桥段","开场beat","片尾outro","广告口播"],ans:0,exp:"桥段是段落间的过渡部分。"},
+  {diff:"mid",cat:"三坑消费",q:"购买前和客服确认发货时间和尺码细节，属于：",options:["咨询客服","盲目下单","退货退款","打包卖出"],ans:0,exp:"咨询客服指下单前确认商品信息。"},
+  {diff:"easy",cat:"美妆",q:"涂口红前先润唇打底避免干裂，属于：",options:["唇部打底","卸妆清洁","定妆锁妆","刷酸去角质"],ans:0,exp:"唇部打底指涂口红前滋润嘴唇。"},
+  {diff:"mid",cat:"萌宠",q:"两只宠物初次见面互相试探嗅闻，属于：",options:["互相熟悉","激烈打架","冷漠无视","生病萎靡"],ans:0,exp:"嗅闻试探是宠物互相熟悉的过程。"},
+  {diff:"easy",cat:"饭圈",q:"路人被偶像魅力圈粉、开始关注，属于：",options:["入坑圈粉","脱粉回踩","爬墙换人","离线挂机"],ans:0,exp:"入坑圈粉指路人变成粉丝。"},
+  {diff:"mid",cat:"影视综艺",q:"综艺里嘉宾互怼开玩笑制造笑点，属于：",options:["综艺互怼","严肃采访","新闻播报","纪录片旁白"],ans:0,exp:"综艺互怼是制造节目效果的搞笑互动。"},
+  {diff:"easy",cat:"童年游戏",q:"游戏内查看角色属性数值面板，叫：",options:["属性面板","对局回放","背包仓库","签到日历"],ans:0,exp:"属性面板展示角色各项数值。"},
+  {diff:"mid",cat:"童年游戏",q:"和其他玩家比拼段位排名的竞技模式，叫：",options:["排位竞技","休闲挂机","新手教程","离线签到"],ans:0,exp:"排位竞技指冲段位排名的对战模式。"},
+  {diff:"easy",cat:"土味抽象",q:"视频结尾用魔性口号收尾让人记住，属于：",options:["记忆点收尾","严肃总结","新闻结尾","学术结语"],ans:0,exp:"记忆点收尾指用口号加深观众印象。"},
+  {diff:"mid",cat:"通用",q:"把答对的梗收录进自己的收藏笔记复习，属于：",options:["整理收藏","弃坑下线","已读不回","挂机潜水"],ans:0,exp:"整理收藏指把学到的梗归档复习。"},
+  {diff:"hell",cat:"通用",q:"不同难度题目按普及度分层，地狱级题目对应的梗：",options:["小众冷门","人人皆知","随处可见","新手必懂"],ans:0,exp:"地狱级对应普及度低、冷门小众的梗。"},
+  {diff:"easy",cat:"电竞",q:"对局里队友提醒小心敌人埋伏，属于：",options:["提醒警戒","挂机沉默","白给送头","赛后复盘"],ans:0,exp:"提醒警戒指通报危险、注意埋伏。"},
+  {diff:"mid",cat:"外网",q:"外网形容某人随和好相处、没架子，叫：",options:["easygoing","cringe","sus mid","hard to please"],ans:0,exp:"easygoing指随和、好相处。"},
+  {diff:"easy",cat:"说唱",q:"说唱里反复强调个人态度和立场的表达，叫：",options:["态度表达","广告口播","片尾字幕","新闻旁白"],ans:0,exp:"态度表达指说唱中传递个人立场。"},
+  {diff:"mid",cat:"三坑消费",q:"商品二手转手时价格比原价低很多，叫：",options:["白菜甩卖","h价炒高","现货掉落","打包捆绑"],ans:0,exp:"白菜甩卖指低价出售闲置。"},
+  {diff:"easy",cat:"美妆",q:"用腮红提亮气色、增加面部红润感，叫：",options:["打腮红","卸妆清洁","修容打影","刷酸焕肤"],ans:0,exp:"打腮红指涂刷腮红提升气色。"},
+  {diff:"mid",cat:"萌宠",q:"宠物犯错误后躲角落垂头丧气，属于：",options:["知错心虚","得意嚣张","活泼玩耍","放松睡觉"],ans:0,exp:"躲角落垂头是宠物心虚知道犯错。"},
+  {diff:"easy",cat:"火影",q:"火影手游里角色释放技能打出连招压制对手，属于：",options:["技能压制","回城挂机","日常签到","背包整理"],ans:0,exp:"技能压制指用连招控制对手。"},
+  {diff:"mid",cat:"第五人格",q:"求生者之间互相配合分工修机救人，属于：",options:["团队配合","各自挂机","单独投降","离线OB"],ans:0,exp:"团队配合指求生者分工协作逃生。"},
+  {diff:"easy",cat:"影视综艺",q:"节目开始前的暖场互动、调动现场气氛，叫：",options:["暖场破冰","赛后复盘","剧情结局","广告插播"],ans:0,exp:"暖场破冰指开场调动现场气氛。"},
+  {diff:"mid",cat:"童年游戏",q:"游戏里通过成就积累解锁额外奖励内容，叫：",options:["成就解锁","离线挂机","日常签到","背包清理"],ans:0,exp:"成就解锁指达成条件后开放奖励。"},
+  {diff:"mid",cat:"外网",q:"一个人特别会撩、个人魅力强，外网形容他____很高：",options:["rizz","mid","cap","vibe"],ans:0,exp:"rizz特指吸引异性、撩人的社交魅力。"},
+  {diff:"mid",cat:"外网",q:"事情离谱到只有奇葩地方才会发生，外网吐槽：",options:["Only in Ohio","no cap","based","slay"],ans:0,exp:"Only in Ohio形容事情离谱不正常，只有奇葩地方才有。"},
+  {diff:"mid",cat:"外网",q:"通过扭曲事实进行精神操控、让对方自我怀疑，叫：",options:["gaslight","vibe check","hustle","rizz"],ans:0,exp:"gaslight即煤气灯效应，精神操控、扭曲事实。"},
+  {diff:"mid",cat:"外网",q:"只做分内事、不再额外内卷加班，外网叫：",options:["quiet quitting","villain era","hustle culture","main character"],ans:0,exp:"quiet quitting是躺平式上班，只做分内事不内卷。"},
+  {diff:"mid",cat:"外网",q:"不再讨好别人、优先让自己爽，外网戏称进入：",options:["villain era","quiet quitting","girl dinner","gaslight"],ans:0,exp:"villain era=反派时代，不再当老好人优先自己。"},
+  {diff:"mid",cat:"外网",q:"女生消费时自我说服的奇葩算账逻辑，比如“打折等于省钱”，叫：",options:["girl math","boy math","girl dinner","hustle"],ans:0,exp:"girl math指女生消费时的奇葩算账逻辑。"},
+  {diff:"mid",cat:"外网",q:"女生随便凑一点、种类杂量不多的简易晚餐，叫：",options:["girl dinner","girl math","side hustle","main character"],ans:0,exp:"girl dinner指随便凑的简易晚餐。"},
+  {diff:"mid",cat:"外网",q:"在主业之外偷偷搞的副业小生意，外网叫：",options:["side hustle","main character","quiet quitting","gaslight"],ans:0,exp:"side hustle指主业之外的副业、兼职小生意。"},
+  {diff:"mid",cat:"外网",q:"被老板PUA、精神内耗后决定只干分内活，属于哪类外网趋势：",options:["quiet quitting","hustle culture","slay era","rizz up"],ans:0,exp:"quiet quitting即躺平式上班，拒绝额外内卷。"},
+  {diff:"mid",cat:"外网",q:"视频里突然出现的离谱高能名场面，外网弹幕常刷：",options:["W","L","mid","cap"],ans:0,exp:"W=win表示赢了/牛；L=loss表示拉了/输。"},
+  {diff:"mid",cat:"外网",q:"这波操作翻车拉胯、输麻了，外网会刷：",options:["L","W","slay","based"],ans:0,exp:"L=loss，表示拉了、输了、不行。"},
+  {diff:"mid",cat:"外网",q:"把自己人生当成电影主角、镜头感十足，这种心态叫：",options:["main character energy","NPC mode","side quest","debuff stack"],ans:0,exp:"main character energy即主角心态、主角能量。"},
+  {diff:"mid",cat:"外网",q:"网络上和现实里判若两人、线上社牛线下社恐，外网形容：",options:["online vs offline","vibe check","no cap","based"],ans:0,exp:"online vs offline指线上线下反差人设。"},
+  {diff:"mid",cat:"外网",q:"突然醒悟、看清现实不再恋爱脑，外网戏称进入：",options:["red pilled","blue pilled","NPC mode","rizz down"],ans:0,exp:"red pilled指醒悟、看透现实的状态。"},
+  {diff:"mid",cat:"外网",q:"什么都跟着潮流走、没有自己想法，像程序设定的角色，叫：",options:["NPC","Boss","Chad","Sigma"],ans:0,exp:"NPC比喻随大流、没有自主想法的人。"},
+  {diff:"mid",cat:"外网",q:"一个梗突然在全网病毒式传播、刷屏，外网叫：",options:["viral","based","mid","sus"],ans:0,exp:"viral形容内容像病毒一样疯传刷屏。"},
+  {diff:"mid",cat:"外网",q:"内容质量低、套路化、敷衍产出，外网形容词是：",options:["mid","slay","W","based"],ans:0,exp:"mid形容平庸普通、不上不下。"},
+  {diff:"mid",cat:"外网",q:"对某人突然上头、疯狂迷恋，外网说 he/she is ____ over：",options:["obsessed","cap","mid","based"],ans:0,exp:"obsessed指痴迷、上头、疯狂迷恋。"},
+  {diff:"mid",cat:"外网",q:"社交媒体上精心维持的完美人设形象，外网叫：",options:["vibe","aesthetic","NPC","beef"],ans:1,exp:"aesthetic指审美风格、视觉人设形象。"},
+  {diff:"hell",cat:"外网",q:"魅力十足、人生赢家型的阿尔法男性，外网经典梗形象是：",options:["Chad","Virgin","Sigma","NPC"],ans:0,exp:"Chad指魅力十足的成功男性；Virgin对应没魅力的失败者。"},
+  {diff:"hell",cat:"外网",q:"和Chad相对、引申为没魅力总失败的男性，叫：",options:["Virgin","Chad","Sigma","Alpha"],ans:0,exp:"Virgin原指处男，引申为没魅力的失败者。"},
+  {diff:"hell",cat:"外网",q:"独来独往、不靠社交、自身实力很强的男性，叫：",options:["Sigma男","Alpha男","Beta男","Chad"],ans:0,exp:"Sigma male即西格玛男，独狼式实力派。"},
+  {diff:"hell",cat:"外网",q:"拼命搞钱、努力打拼的奋斗文化，外网叫：",options:["hustle culture","quiet quitting","villain era","girl math"],ans:0,exp:"hustle culture即奋斗/搞钱文化。"},
+  {diff:"hell",cat:"外网",q:"粉色呆萌四足、跨圈层全球爆火的表情包形象出自手游：",options:["胜利女神：妮姬","原神","崩坏","王者荣耀"],ans:0,exp:"Doro出自《胜利女神：妮姬》，粉色呆萌四足形象爆火。"},
+  {diff:"hell",cat:"外网",q:"外网儿童圈爆火、马桶人与监控人对战的抽象动画叫：",options:["Skibidi toilet","Doro meme","Ohio trend","Among Us"],ans:0,exp:"Skibidi toilet即马桶人抽象动画。"},
+  {diff:"hell",cat:"外网",q:"狼人杀/太空杀类游戏里假装好人、暗中搞事的内鬼，外网术语：",options:["imposter","Chad","NPC","Sigma"],ans:0,exp:"imposter即内鬼、冒名顶替者。"},
+  {diff:"hell",cat:"外网",q:"外网流行的极简生活、减少消费主义的理念，叫：",options:["minimalism","hustle culture","girl dinner","viral trend"],ans:0,exp:"minimalism即极简主义，减少物质消费。"},
+  {diff:"hell",cat:"外网",q:"外网“girl math”里，把贵价物说成“分期等于没花钱”属于：",options:["自我说服的奇葩算账","严格财务规划","理性消费建议","数学竞赛解题"],ans:0,exp:"girl math是消费时自我安慰的奇葩算账逻辑。"},
+  {diff:"hell",cat:"外网",q:"外网形容情绪彻底崩溃、原地破防到精神出走，叫：",options:["unhinged","based","slay","mid"],ans:0,exp:"unhinged形容情绪失控、离谱放飞。"},
+  {diff:"hell",cat:"外网",q:"外网“main character”梗里，路人甲背景板角色对应：",options:["side character","Chad","boss fight","fanum tax"],ans:0,exp:"side character即配角、背景板角色。"},
+  {diff:"hell",cat:"外网",q:"外网形容某人油腻、装腔作势、自我陶醉，形容词是：",options:["cringe","based","slay","W"],ans:0,exp:"cringe指尴尬、油腻、让人脚趾抠地。"},
+  {diff:"hell",cat:"外网",q:"外网“rizz”里，毫无技巧硬撩反而翻车，被称为：",options:["negative rizz","unlimited rizz","rizz god","vibe check"],ans:0,exp:"negative rizz指反向魅力、硬撩翻车。"},
+  {diff:"hell",cat:"外网",q:"外网游戏梗里，开局就白给送人头，叫：",options:["feeding","ganking","camping","clutch"],ans:0,exp:"feeding指反复送人头、养肥对手。"},
+  {diff:"hell",cat:"外网",q:"外网游戏梗里，蹲点埋伏守着偷袭，叫：",options:["camping","feeding","rush","respawn"],ans:0,exp:"camping指蹲角落埋伏偷袭。"},
+  {diff:"hell",cat:"外网",q:"绝境下逆风翻盘、力挽狂澜的关键操作，外网叫：",options:["clutch","mid","cap","sus"],ans:0,exp:"clutch指关键时刻稳住、逆风翻盘。"},
+  {diff:"mid",cat:"说唱",q:"两个人之间结下的恩怨、过节，说唱圈叫有：",options:["beef","hook","flow","peace"],ans:0,exp:"beef指恩怨、过节、矛盾。"},
+  {diff:"mid",cat:"说唱",q:"对对方的diss进行回击、回怼，叫：",options:["diss back","battle","hook","respect"],ans:0,exp:"diss back即回击对方的攻击。"},
+  {diff:"mid",cat:"说唱",q:"说话的节奏、韵律和个人风格，说唱圈叫：",options:["flow","hook","beat","bar"],ans:0,exp:"flow指节奏、韵律和个人表达风格。"},
+  {diff:"mid",cat:"说唱",q:"最有力、最戳人的点睛金句，说唱圈叫：",options:["punchline","verse","bridge","beat"],ans:0,exp:"punchline指点睛爆点、最有力的那句词。"},
+  {diff:"mid",cat:"说唱",q:"对前辈/对手表示尊重、佩服，音译梗叫：",options:["瑞思拜","掰头","歪了","吃井"],ans:0,exp:"瑞思拜=respect，尊重、佩服、致敬。"},
+  {diff:"mid",cat:"说唱",q:"呼吁和平友爱、别再争吵，说唱圈常说：",options:["peace & love","diss back","beef up","cut verse"],ans:0,exp:"peace & love即和平与爱。"},
+  {diff:"mid",cat:"说唱",q:"保持真实、不虚伪不做作，说唱圈叫：",options:["keep real","cap hard","mid out","slay on"],ans:0,exp:"keep real即保持真实、不装。"},
+  {diff:"mid",cat:"说唱",q:"一句一句押韵的歌词单位，说唱圈叫：",options:["bar","hook","beat","chorus"],ans:0,exp:"bar指一句押韵歌词。"},
+  {diff:"mid",cat:"说唱",q:"说唱里的伴奏节拍、鼓点，叫：",options:["beat","hook","flow","bar"],ans:0,exp:"beat指伴奏节拍、鼓点。"},
+  {diff:"mid",cat:"说唱",q:"正歌叙事部分、区别于副歌的段落，叫：",options:["verse","hook","beat","outro"],ans:0,exp:"verse即主歌段落。"},
+  {diff:"hell",cat:"说唱",q:"808鼓、陷阱说唱这一细分风格，说唱圈叫：",options:["trap","boombap","old school","acappella"],ans:0,exp:"trap即陷阱说唱，标志性808鼓贝斯。"},
+  {diff:"hell",cat:"说唱",q:"无伴奏纯人声演唱，说唱/音乐术语叫：",options:["acappella","remix","mixtape","cypher"],ans:0,exp:"acappella=阿卡贝拉，无伴奏纯人声。"},
+  {diff:"hell",cat:"说唱",q:"多人接力说唱、一人一段轮唱的形式，叫：",options:["cypher","diss track","feat","bridge"],ans:0,exp:"cypher指多人接力轮唱的说唱形式。"},
+  {diff:"hell",cat:"说唱",q:"专门用来抨击怼人的说唱曲目，叫：",options:["diss track","mixtape","album","outro"],ans:0,exp:"diss track即专门diss对方的曲目。"},
+  {diff:"hell",cat:"说唱",q:"非正式合集、混音带形式的作品，叫：",options:["mixtape","single","album","remix"],ans:0,exp:"mixtape指非正式混音合集/mixtape。"},
+  {diff:"hell",cat:"说唱",q:"两首歌重新编曲混搭后的版本，叫：",options:["remix","cypher","verse","beat"],ans:0,exp:"remix即重新混音改编版本。"},
+  {diff:"hell",cat:"说唱",q:"两位及以上歌手合作演唱曲目，标注方式是：",options:["feat.","outro","interlude","bridge"],ans:0,exp:"feat.=featuring，合作演唱标注。"},
+  {diff:"hell",cat:"说唱",q:"复古硬朗鼓点、老派说唱风格，叫：",options:["boombap","trap","acappella","cypher"],ans:0,exp:"boombap是经典老派硬核鼓点风格。"},
+  {diff:"mid",cat:"童年游戏",q:"首次挑战新副本、摸索着开荒，游戏化说法：",options:["开荒","伐木","回城","蹲草"],ans:0,exp:"开荒指首次尝试新事物、摸索前进。"},
+  {diff:"mid",cat:"童年游戏",q:"熟练后机械重复地刷同一件事，像砍树一样，叫：",options:["伐木","开荒","通关","存档"],ans:0,exp:"伐木指熟练后机械重复刷、不用费脑。"},
+  {diff:"mid",cat:"童年游戏",q:"最后一下击杀、收尾拿到成果，叫补：",options:["尾刀","人头","buff","水晶"],ans:0,exp:"尾刀即最后一击、收尾拿成果。"},
+  {diff:"mid",cat:"童年游戏",q:"抢别人的击杀/功劳，游戏圈叫抢：",options:["人头","buff","资源","线"],ans:0,exp:"抢人头指抢别人的击杀/功劳。"},
+  {diff:"mid",cat:"童年游戏",q:"强度分级里最高梯队、非选不可的档位，叫：",options:["T0","T3","下水道","白板"],ans:0,exp:"T0是最高强度梯队；T3是垫底梯队。"},
+  {diff:"mid",cat:"童年游戏",q:"强度最低梯队、没人用的档位，叫：",options:["T3","T0","T1","天花板"],ans:0,exp:"T3是强度垫底梯队。"},
+  {diff:"mid",cat:"童年游戏",q:"残血后回到安全点回血复活，游戏操作叫：",options:["回城","秒杀","开荒","压家"],ans:0,exp:"回城指回到基地回血补给。"},
+  {diff:"mid",cat:"童年游戏",q:"一群人抱团推进、不单独行动，游戏策略叫：",options:["抱团","单带","偷家","gank"],ans:0,exp:"抱团指多人集合一起推进。"},
+  {diff:"mid",cat:"童年游戏",q:"埋伏抓落单对手、打出突然袭击，叫：",options:["gank","回城","farm","守家"],ans:0,exp:"gank指埋伏偷袭落单目标。"},
+  {diff:"mid",cat:"童年游戏",q:"默默发育攒资源、等后期发力，叫：",options:["farm","gank","rush","poke"],ans:0,exp:"farm指刷资源发育、攒经济。"},
+  {diff:"mid",cat:"童年游戏",q:"远程消耗血量、慢慢磨对手，游戏术语叫：",options:["poke","burst","tank","heal"],ans:0,exp:"poke指远程拉扯消耗。"},
+  {diff:"mid",cat:"童年游戏",q:"一套技能瞬间打出爆发伤害秒人，叫：",options:["burst","poke","farm","tank"],ans:0,exp:"burst指瞬间爆发伤害。"},
+  {diff:"mid",cat:"童年游戏",q:"前排抗伤害、挡在队伍最前面的角色定位，叫：",options:["坦克","输出","辅助","刺客"],ans:0,exp:"坦克即前排承伤定位。"},
+  {diff:"mid",cat:"童年游戏",q:"给队友加血加盾、提供支援的角色定位，叫：",options:["辅助","坦克","刺客","输出"],ans:0,exp:"辅助负责支援、治疗、保护队友。"},
+  {diff:"mid",cat:"童年游戏",q:"伤害高、负责输出打击的角色定位，叫：",options:["输出","坦克","辅助","侦查"],ans:0,exp:"输出位负责打伤害。"},
+  {diff:"mid",cat:"童年游戏",q:"隐身突进、切后排脆皮的高爆发角色，叫：",options:["刺客","坦克","辅助","牧师"],ans:0,exp:"刺客负责突进切后排。"},
+  {diff:"hell",cat:"童年游戏",q:"抽卡时没抽到想要的、歪到其他角色，俗称：",options:["歪了","保底","双黄","偷渡"],ans:0,exp:"歪了指抽卡没出想要的、歪到别的。"},
+  {diff:"hell",cat:"童年游戏",q:"抽卡机制里保证一定次数必出稀有，叫：",options:["保底","歪了","沉船","端盒"],ans:0,exp:"保底=达到次数必出稀有奖励。"},
+  {diff:"hell",cat:"童年游戏",q:"直接买下一整盒盲盒保证款式齐全，盲盒玩法叫：",options:["端盒","单抽","十连","保底"],ans:0,exp:"端盒=直接买一整盒保证集齐。"},
+  {diff:"hell",cat:"童年游戏",q:"抽了一整轮还是没想要的、像吃了个空井，俗称：",options:["吃井","双黄","偷渡","欧皇"],ans:0,exp:"吃井=抽卡保底落空、没抽到想要的。"},
+  {diff:"hell",cat:"童年游戏",q:"单抽一发就出稀有、脸白到像偷渡成功，叫：",options:["偷渡","沉船","保底","吃井"],ans:0,exp:"偷渡指低概率一发入魂、运气逆天。"},
+  {diff:"hell",cat:"童年游戏",q:"连出两个稀有、一次抽到双份好货，叫：",options:["双黄","吃井","歪了","沉船"],ans:0,exp:"双黄指一次抽中两个稀有。"},
+  {diff:"hell",cat:"童年游戏",q:"抽卡抽到大额投入仍没出货、血本无归，俗称：",options:["沉船","双黄","偷渡","端盒"],ans:0,exp:"沉船指抽卡氪金落空、没出想要的。"},
+  {diff:"hell",cat:"童年游戏",q:"游戏里消耗品用完、技能进入冷却不能再放，叫：",options:["技能冷却","满血复活","buff叠加","通关"],ans:0,exp:"冷却（CD）指技能暂不可用、需等待恢复。"},
+  {diff:"hell",cat:"童年游戏",q:"一局结束后重新开始、从零再来，游戏术语叫：",options:["重开","存档","回城","farm"],ans:0,exp:"重开指对局失败后重新开局。"},
+  {diff:"hell",cat:"童年游戏",q:"把对手一路压制、打得毫无还手之力，叫：",options:["碾压","poke","farm","混子"],ans:0,exp:"碾压指实力悬殊、一边倒压制。"},
+  {diff:"hell",cat:"童年游戏",q:"游戏里隐藏属性、额外加成的被动效果，叫：",options:["被动buff","debuff","惩罚","掉线"],ans:0,exp:"被动指自动生效、无需手动释放的加成。"},
+  {diff:"hell",cat:"童年游戏",q:"等级/实力达到最高、再无成长空间，游戏里叫：",options:["满级","新手村","开荒","回城"],ans:0,exp:"满级指等级拉满、达到上限。"},
+  {diff:"hell",cat:"童年游戏",q:"游戏结束结算界面展示的本局成绩数据，叫：",options:["战绩","日常","主线","背包"],ans:0,exp:"战绩即本局对局数据统计。"},
+  {diff:"mid",cat:"三坑消费",q:"付定金时爽快，集中补尾款时没钱支付的窘境，叫：",options:["尾款地狱","现货掉落","工期完结","再贩成功"],ans:0,exp:"尾款地狱形容补尾款时没钱的痛苦窘境。"},
+  {diff:"mid",cat:"三坑消费",q:"有库存、拍下就能立刻发货的商品，叫：",options:["现货","预售","掉落","绝版"],ans:0,exp:"现货与预售相对，指有库存可立刻发货。"},
+  {diff:"mid",cat:"三坑消费",q:"要先付定金、等制作完成再补尾款发货，叫：",options:["预售","现货","掉落","绝版"],ans:0,exp:"预售指先付定金、等制作周期后发货。"},
+  {diff:"mid",cat:"三坑消费",q:"制作商品需要等待的时间周期，三坑圈叫：",options:["工期","尾款","定金","掉落"],ans:0,exp:"工期即制作周期、等待时长。"},
+  {diff:"mid",cat:"三坑消费",q:"预售结束后剩余的少量、需要抢的现货，叫：",options:["掉落","绝版","打包","h价"],ans:0,exp:"掉落指预售剩余的少量现货，数量少需抢。"},
+  {diff:"mid",cat:"三坑消费",q:"永久不再生产、存世量只会越来越少，叫：",options:["绝版","现货","预售","掉落"],ans:0,exp:"绝版指永久不再生产售卖。"},
+  {diff:"mid",cat:"三坑消费",q:"山寨盗版、非正版仿冒品，三坑圈简称：",options:["山","正","萌","坑"],ans:0,exp:"山=山寨盗版；正=正版原创。"},
+  {diff:"mid",cat:"三坑消费",q:"正版原创的商品，三坑圈简称：",options:["正","山","h","裸"],ans:0,exp:"正即正版原创，与“山”相对。"},
+  {diff:"mid",cat:"三坑消费",q:"二手市场高于原价的价格，三坑圈简称：",options:["h价","原价","平替","白菜"],ans:0,exp:"h价=high价，高于原价的二手价格。"},
+  {diff:"mid",cat:"三坑消费",q:"把闲置物品转卖给别人，三坑圈说法是：",options:["出掉","收走","囤着","种草"],ans:0,exp:"出掉=转卖闲置；收=买二手闲置。"},
+  {diff:"mid",cat:"三坑消费",q:"价格很便宜、划算到手的二手/闲置，叫：",options:["白菜","h价","打包","大全套"],ans:0,exp:"白菜形容价格低廉、很划算。"},
+  {diff:"mid",cat:"三坑消费",q:"款式受欢迎、大家都想要的热门款，三坑圈叫：",options:["萌款","冷门","山款","裸款"],ans:0,exp:"萌款指热门受欢迎的款式。"},
+  {diff:"hell",cat:"三坑消费",q:"热门款必须绑定冷门款一起买、不单卖热门，这种销售方式叫：",options:["打包","现货","掉落","再贩"],ans:0,exp:"打包指热门搭冷门、强制捆绑一起卖。"},
+  {diff:"hell",cat:"三坑消费",q:"全套配齐、所有配件小物都有的完整套装，叫：",options:["大全套","裸款","预售","现货"],ans:0,exp:"大全套=主体加全部配件小物配齐。"},
+  {diff:"hell",cat:"三坑消费",q:"只买主体、不含额外配件的版本，叫：",options:["裸款","大全套","萌款","h价"],ans:0,exp:"裸款即只有主体、无额外配件。"},
+  {diff:"hell",cat:"三坑消费",q:"买之前先看测评、了解细节避免踩雷，三坑/消费圈叫：",options:["做功课","跟风买","囤货","拼单"],ans:0,exp:"做功课指消费前先了解信息、避免踩雷。"},
+  {diff:"hell",cat:"三坑消费",q:"之前绝版停售、现在重新开团制作售卖，叫：",options:["再贩","现货","掉落","绝版"],ans:0,exp:"再贩指重新开卖、复刻上架。"},
+  {diff:"hell",cat:"三坑消费",q:"多人凑单拼团拿到更低折扣，三坑/消费圈叫：",options:["拼单","独买","囤货","出掉"],ans:0,exp:"拼单指多人合伙凑单拼折扣。"},
+  {diff:"hell",cat:"三坑消费",q:"裙子/服饰收到后发现有走线瑕疵、做工问题，叫：",options:["瑕疵","掉落","工期","现货"],ans:0,exp:"瑕疵指商品做工有缺陷、小毛病。"},
+  {diff:"hell",cat:"三坑消费",q:"官方发布新品前的预热宣传图稿，三坑圈叫：",options:["官图","返图","买家秀","repo"],ans:0,exp:"官图是品牌官方发布的宣传图。"},
+  {diff:"mid",cat:"美妆",q:"粉底卡在皮肤纹路里、一块一块不服帖，叫：",options:["卡粉","浮粉","搓泥","假面"],ans:0,exp:"卡粉指粉底卡在纹理里不服帖。"},
+  {diff:"mid",cat:"美妆",q:"粉底浮在表面、不贴合皮肤显得很假，叫：",options:["浮粉","卡粉","搓泥","遮瑕"],ans:0,exp:"浮粉指粉底不贴合、浮在表面。"},
+  {diff:"mid",cat:"美妆",q:"护肤品叠加后搓出一条条泥状物，叫：",options:["搓泥","卡粉","起皮","闷痘"],ans:0,exp:"搓泥指护肤品叠加后产生泥状碎屑。"},
+  {diff:"mid",cat:"美妆",q:"妆感太重、像戴了层面具一样不自然，叫：",options:["假面","伪素颜","打底","定妆"],ans:0,exp:"假面指妆感过重、不自然像假脸。"},
+  {diff:"mid",cat:"美妆",q:"用了不合适的产品导致皮肤状态变差、长痘泛红，俗称：",options:["烂脸","素颜","早C晚A","铁皮"],ans:0,exp:"烂脸指皮肤状态变差、过敏爆痘。"},
+  {diff:"mid",cat:"美妆",q:"精心化了淡妆、看起来像没化妆一样自然，叫：",options:["伪素颜","浓妆","假面","浮粉"],ans:0,exp:"伪素颜即化了淡妆却像没化一样自然。"},
+  {diff:"mid",cat:"美妆",q:"粉状眼影/粉饼用到露出底部铁盘，说明经常用、很好用，叫：",options:["铁皮","空瓶","踩雷","拔草"],ans:0,exp:"铁皮指粉状产品用到露出底部铁盘。"},
+  {diff:"mid",cat:"美妆",q:"水乳精华完全用完、瓶子空了，代表产品真好用，叫：",options:["空瓶","铁皮","囤货","种草"],ans:0,exp:"空瓶指液体产品完全用完。"},
+  {diff:"mid",cat:"美妆",q:"“早C晚A”这个护肤公式指的是：",options:["早用维C抗氧化、晚用维A抗老","早上喝咖啡晚上喝酒","早吃维C晚吃维A","早上C班晚上A班"],ans:0,exp:"早C晚A=早上维C抗氧化、晚上维A抗老。"},
+  {diff:"mid",cat:"美妆",q:"营销特别多、到处都在推但不一定好用，说这个产品____很大：",options:["风","雨","雷","火"],ans:0,exp:"风很大指营销多、热度高、到处推广。"},
+  {diff:"mid",cat:"美妆",q:"毛孔里挤出的油脂小黑点，护肤圈叫：",options:["黑头","闭口","痘印","色斑"],ans:0,exp:"黑头是毛孔开口处氧化的油脂粒。"},
+  {diff:"mid",cat:"美妆",q:"摸起来疙疙瘩瘩、不痛不痒的皮下小颗粒，叫：",options:["闭口","黑头","痘痘","泛红"],ans:0,exp:"闭口即闭合性粉刺，皮下小颗粒。"},
+  {diff:"hell",cat:"美妆",q:"逐步提升用量、让皮肤慢慢适应成分，护肤术语叫建立：",options:["耐受","免疫","屏障","角质"],ans:0,exp:"建立耐受=逐步适应成分，避免不耐受反应。"},
+  {diff:"hell",cat:"美妆",q:"效果强、见效快但刺激性也高的功效成分，护肤圈叫：",options:["猛药","温和药","维稳款","保湿款"],ans:0,exp:"猛药指效果强劲但刺激性较高的成分。"},
+  {diff:"hell",cat:"美妆",q:"用酸类产品剥脱老废角质、疏通毛孔，护肤方式叫：",options:["刷酸","清洁","去黑头","敷膜"],ans:0,exp:"刷酸即用酸类焕肤、疏通毛孔。"},
+  {diff:"hell",cat:"美妆",q:"用太多产品步骤繁琐反而加重皮肤负担，叫：",options:["过度护肤","精简护肤","早C晚A","建立耐受"],ans:0,exp:"过度护肤指步骤太多反加重皮肤负担。"},
+  {diff:"hell",cat:"美妆",q:"只保留必要步骤、减轻皮肤负担，护肤理念叫：",options:["精简护肤","过度护肤","叠加猛药","频繁清洁"],ans:0,exp:"精简护肤=砍掉冗余、只留必要步骤。"},
+  {diff:"hell",cat:"美妆",q:"皮肤出油冒痘、状态不稳定需要先修护维稳，护肤圈说先：",options:["维稳","刷酸","叠猛药","去角质"],ans:0,exp:"维稳指先让皮肤回到稳定健康状态。"},
+  {diff:"hell",cat:"美妆",q:"一款产品被无数博主反复推荐、销量暴涨，叫它被：",options:["打爆","雪藏","下架","回踩"],ans:0,exp:"打爆指营销带火、销量暴涨。"},
+  {diff:"hell",cat:"美妆",q:"试色时在手臂/脸上涂开给大家看效果，美妆圈叫：",options:["试色","翻车","踩雷","空瓶"],ans:0,exp:"试色即展示产品上脸/上手颜色效果。"},
+  {diff:"mid",cat:"萌宠",q:"狗狗歪头吐舌、表情憨傻，被网友做成表情包配文“修勾”，“修勾”指：",options:["小狗","小猫","小熊","小狐狸"],ans:0,exp:"修勾是“小狗”的谐音萌化说法。"},
+  {diff:"mid",cat:"萌宠",q:"猫咪踩奶、咕噜呼噜表现很享受，这个动作叫：",options:["踩奶","拆家","哈气","舔毛"],ans:0,exp:"踩奶是猫咪放松愉悦时的前爪揉捏动作。"},
+  {diff:"mid",cat:"萌宠",q:"猫咪龇牙低吼、发出“哈”声表示生气戒备，叫：",options:["哈气","踩奶","贴贴","翻肚皮"],ans:0,exp:"哈气是猫咪示威戒备的表现。"},
+  {diff:"mid",cat:"萌宠",q:"两只动物/人靠在一起亲昵依偎，网络说法叫：",options:["贴贴","拆家","对峙","干饭"],ans:0,exp:"贴贴指亲昵依偎、关系亲密。"},
+  {diff:"hell",cat:"萌宠",q:"猫咪把肚皮翻露出来，最可能代表它：",options:["放松信任","准备攻击","很冷","要洗澡"],ans:0,exp:"露肚皮通常表示猫咪放松、信任环境。"},
+  {diff:"hell",cat:"萌宠",q:"网上把宠物主人宠上天、自称卑微伺候的群体，俗称：",options:["铲屎官","奴隶主","驯兽师","兽医"],ans:0,exp:"铲屎官是养宠人自嘲的称呼。"},
+  {diff:"hell",cat:"萌宠",q:"宠物挑食、只挑好吃的剩饭，主人吐槽它：",options:["嘴刁","懂事","乖顺","认路"],ans:0,exp:"嘴刁形容宠物挑食、口味挑剔。"},
+  {diff:"mid",cat:"电竞",q:"跟着大部队混、自己不用出力，这种玩家叫：",options:["混子","大神","carry","炸鱼"],ans:0,exp:"混子指不出力、跟着混就行的玩家。"},
+  {diff:"mid",cat:"电竞",q:"花钱请人代打账号、代做任务，叫：",options:["代练","炸鱼","躺赢","开荒"],ans:0,exp:"代练指花钱请人代打、代做。"},
+  {diff:"mid",cat:"电竞",q:"劣势局先保住平局、再找机会争胜，经典策略叫：",options:["保平争胜","全力冲分","卖队友","速投认输"],ans:0,exp:"保平争胜指劣势先保底平局再争取赢。"},
+  {diff:"mid",cat:"电竞",q:"游戏开始前的阵容搭配、选人阶段，叫：",options:["BP阶段","结算阶段","复活阶段","挂机阶段"],ans:0,exp:"BP=Ban/Pick，选人禁用阶段。"},
+  {diff:"mid",cat:"电竞",q:"故意屏蔽、禁止对方选择强势角色，电竞术语叫：",options:["Ban","Pick","carry","OB"],ans:0,exp:"Ban指禁用角色；Pick指选用角色。"},
+  {diff:"mid",cat:"电竞",q:"比赛中途网络卡顿掉线，对局里叫：",options:["掉线","翻盘","守家","gank"],ans:0,exp:"掉线指网络断开、人物离线。"},
+  {diff:"mid",cat:"电竞",q:"基地/水晶被攻破、对局失败，电竞说法是：",options:["被推平","发育良好","拿下一血","抱团推进"],ans:0,exp:"推平指攻破基地输掉比赛。"},
+  {diff:"hell",cat:"电竞",q:"一局里第一次拿到击杀、抢先拔得头筹，叫：",options:["一血","双杀","三杀","五杀"],ans:0,exp:"一血=first blood，本局首个击杀。"},
+  {diff:"hell",cat:"电竞",q:"短时间内连续击杀两名对手，叫：",options:["双杀","一血","助攻","翻盘"],ans:0,exp:"双杀指连续击杀两人。"},
+  {diff:"hell",cat:"电竞",q:"短时间内连续击杀五名对手的高光名场面，叫：",options:["五杀","一血","混子","OB"],ans:0,exp:"五杀即短时间连杀五人，极限高光。"},
+  {diff:"hell",cat:"电竞",q:"帮队友补刀/助攻击杀、分享功劳，叫：",options:["助攻","抢人头","gank","farm"],ans:0,exp:"助攻指协助队友完成击杀。"},
+  {diff:"hell",cat:"电竞",q:"比赛比分落后很多、即将被淘汰，电竞解说常说进入：",options:["赛点","垃圾时间","热身局","日常局"],ans:0,exp:"赛点指再输一局即出局的关键节点。"},
+  {diff:"hell",cat:"电竞",q:"劣势下一波团战翻盘、局势逆转，电竞名场面叫：",options:["翻盘局","白给局","养生局","混分局"],ans:0,exp:"翻盘局指劣势逆转取胜。"},
+  {diff:"mid",cat:"火影",q:"形容实力断层碾压、让人震惊，出自火影手游圈的说法是：",options:["断了","尿了","卡了","输了"],ans:0,exp:"“断了”指实力断层碾压、令人震惊。"},
+  {diff:"mid",cat:"火影",q:"发挥失常、状态垮掉，火影手游玩家调侃说：",options:["尿了","断了","赢了","起飞"],ans:0,exp:"“尿了”调侃发挥失常、状态拉垮。"},
+  {diff:"hell",cat:"火影",q:"游戏圈知名策划背锅梗，版本失衡玩家会喊哪位策划出来：",options:["山椒鱼","守鹤","鸣人","卡卡西"],ans:0,exp:"山椒鱼是知名策划梗，代指出来背锅的负责人。"},
+  {diff:"hell",cat:"火影",q:"角色机制不讲道理、体验恶心，玩家吐槽角色太：",options:["阴间","阳间","轮椅","保底"],ans:0,exp:"阴间形容机制恶心、不讲道理、体验差。"},
+  {diff:"hell",cat:"火影",q:"操作简单、躺着都能赢的角色，调侃像坐：",options:["轮椅","飞机","火箭","轿子"],ans:0,exp:"轮椅角色指门槛极低、不用操作也能赢。"},
+  {diff:"hell",cat:"火影",q:"靠操作技巧打出高额爆发伤害，火影玩家形容操作很：",options:["秀","白给","阴间","轮椅"],ans:0,exp:"“秀”指操作华丽亮眼、技巧到位。"},
+  {diff:"hell",cat:"火影",q:"对局里被对手一套连招连到动不了、无法脱身，叫：",options:["连招平推","回城复活","自由走位","攒豆替身"],ans:0,exp:"连招平推指被连击压制、无法脱身。"},
+  {diff:"mid",cat:"饭圈",q:"换成喜欢别的偶像，饭圈叫：",options:["爬墙","固粉","提纯","营业"],ans:0,exp:"爬墙指换偶像、喜欢上别人。"},
+  {diff:"mid",cat:"饭圈",q:"只粉自己偶像、极端排斥其他成员的粉丝，叫：",options:["毒唯","团粉","路人粉","双担"],ans:0,exp:"毒唯是极端唯粉，排斥其他成员。"},
+  {diff:"mid",cat:"饭圈",q:"跟踪偶像私生活、越界打扰的粉丝，叫：",options:["私生饭","站姐","路人粉","团粉"],ans:0,exp:"私生饭是跟踪私生活、越界的粉丝。"},
+  {diff:"mid",cat:"饭圈",q:"专门拍偶像返图、剪辑素材的粉丝群体，叫：",options:["站姐","黑粉","路人","披皮黑"],ans:0,exp:"站姐是管理粉丝站、拍图产出素材的粉丝。"},
+  {diff:"mid",cat:"饭圈",q:"偶像定期发物料、做活动维持人气，饭圈叫：",options:["营业","塌房","糊了","爬墙"],ans:0,exp:"营业指偶像公开露面、产出内容维持热度。"},
+  {diff:"mid",cat:"饭圈",q:"把粉丝群体团结起来、巩固忠诚度，饭圈运营叫：",options:["固粉","提纯","回踩","爬墙"],ans:0,exp:"固粉指巩固粉丝、避免脱粉。"},
+  {diff:"hell",cat:"饭圈",q:"伪装成粉丝混在粉圈里挑事带节奏的，叫：",options:["披皮黑","死忠粉","路人粉","站姐"],ans:0,exp:"披皮黑=装粉丝的黑粉，挑事引战。"},
+  {diff:"hell",cat:"饭圈",q:"反过来黑曾经追过的偶像，饭圈叫：",options:["回踩","固粉","提纯","营业"],ans:0,exp:"回踩指脱粉后反过来黑前偶像。"},
+  {diff:"hell",cat:"饭圈",q:"从路人变成粉丝，饭圈叫：",options:["路转粉","粉转黑","粉转路","提纯"],ans:0,exp:"路转粉=路人变粉丝；粉转路=粉丝变路人。"},
+  {diff:"hell",cat:"饭圈",q:"从粉丝变成路人不再关注，饭圈叫：",options:["粉转路","路转粉","回踩","固粉"],ans:0,exp:"粉转路=粉丝脱粉变回路人。"},
+  {diff:"hell",cat:"饭圈",q:"刻意引导粉丝、为正主控场的职业粉丝，叫：",options:["脂粉","路人粉","双担","站姐"],ans:0,exp:"脂粉=职业粉丝，拿钱运营粉圈。"},
+  {diff:"hell",cat:"饭圈",q:"同时喜欢两位偶像、两边都粉，饭圈叫：",options:["双担","唯粉","毒唯","路人"],ans:0,exp:"双担指同时粉两位偶像。"},
+  {diff:"hell",cat:"饭圈",q:"粉丝为偶像做数据、刷榜控评的应援行为，叫：",options:["打榜","塌房","回踩","爬墙"],ans:0,exp:"打榜指粉丝刷数据冲排行榜应援。"},
+  {diff:"hell",cat:"饭圈",q:"在评论区统一话术、删除不利言论维护形象，叫：",options:["控评","营业","固粉","提纯"],ans:0,exp:"控评指粉丝统一话术、管控评论区。"},
+  {diff:"mid",cat:"影视综艺",q:"本来立下flag结果立刻打脸收回，叫：",options:["秒收flag","主角光环","剧情杀","烂尾"],ans:0,exp:"秒收flag指刚立flag就立刻被打脸。"},
+  {diff:"mid",cat:"影视综艺",q:"剧情里自带主角运气、怎么都不会输，叫：",options:["主角光环","剧情杀","神展开","BE结局"],ans:0,exp:"主角光环指主角自带的运气加持。"},
+  {diff:"mid",cat:"影视综艺",q:"刻意安排角色必死、推动剧情，叫：",options:["剧情杀","OOC","洗白","番外"],ans:0,exp:"剧情杀指为剧情需要安排角色退场。"},
+  {diff:"mid",cat:"影视综艺",q:"人设行为和原作设定不符、崩了，缩写：",options:["OOC","HE","BE","AU"],ans:0,exp:"OOC=Out of Character，人设不符崩塌。"},
+  {diff:"mid",cat:"影视综艺",q:"悲剧结局、主角没能圆满，缩写：",options:["BE","HE","OE","AU"],ans:0,exp:"BE=Bad Ending悲剧结局；HE=Happy Ending圆满结局。"},
+  {diff:"mid",cat:"影视综艺",q:"圆满美好的结局，缩写：",options:["HE","BE","OOC","CP"],ans:0,exp:"HE=Happy Ending圆满结局。"},
+  {diff:"mid",cat:"影视综艺",q:"剧中被观众凑成一对、拉郎配对的搭档，叫：",options:["CP","NPC","Boss","flag"],ans:0,exp:"CP=couple，被观众配对的角色组合。"},
+  {diff:"hell",cat:"影视综艺",q:"故事主线中途偏离原著、情节走向离谱，叫：",options:["魔改","原著向","番外","彩蛋"],ans:0,exp:"魔改指剧情大幅偏离原作、离谱改编。"},
+  {diff:"hell",cat:"影视综艺",q:"剧集后期仓促收尾、交代不清，观众吐槽：",options:["烂尾","封神","高开","圆满"],ans:0,exp:"烂尾指作品后期仓促、结局拉胯。"},
+  {diff:"hell",cat:"影视综艺",q:"开篇质量高、势头很猛，观众称之为：",options:["高开","低走","烂尾","腰斩"],ans:0,exp:"高开指开局口碑热度都很高。"},
+  {diff:"hell",cat:"影视综艺",q:"开场惊艳但后期越播越差，走势叫：",options:["低开高走","高开低走","一路封神","持续稳赢"],ans:1,exp:"高开低走指前期好、后期拉胯。"},
+  {diff:"hell",cat:"影视综艺",q:"剧集里埋的伏笔、后续要回收的线索，叫：",options:["伏笔","彩蛋","番外","台词"],ans:0,exp:"伏笔指前期埋下、后期回收的线索。"},
+  {diff:"hell",cat:"第五人格",q:"交互瞬间被攻击直接倒地的判定，游戏里叫：",options:["震慑","一刀斩","搏命","压机"],ans:0,exp:"震慑指交互时被攻击直接双倍倒地。"},
+  {diff:"hell",cat:"第五人格",q:"通电后监管普攻直接倒地的翻盘天赋，叫：",options:["一刀斩","大心脏","搏命","双弹"],ans:0,exp:"一刀斩是开门战监管普攻倒地的翻盘天赋。"},
+  {diff:"hell",cat:"第五人格",q:"救人位核心天赋，救下后双方短暂无敌，叫：",options:["搏命","飞轮","双弹","大心脏"],ans:0,exp:"搏命=救下后短暂无敌的救人位天赋。"},
+  {diff:"hell",cat:"第五人格",q:"求生者翻盘核心天赋，通电后回血加速，叫：",options:["大心脏","一刀斩","搏命","飞轮"],ans:0,exp:"大心脏是通电后回血加速的翻盘天赋。"},
+  {diff:"hell",cat:"第五人格",q:"最后一名求生者可独自逃生的秘密通道，叫：",options:["地窖","地下室","大门","密道"],ans:0,exp:"地窖是独狼翻盘的退路，最后一人可逃生。"},
+  {diff:"hell",cat:"第五人格",q:"四人全部逃生的完美胜利，监管方视角叫：",options:["四出","四抓","三出","平局"],ans:0,exp:"四出=四人逃生；四抓=监管淘汰全部四人。"},
+  {diff:"hell",cat:"第五人格",q:"监管淘汰全部四名求生者的完美胜利，叫：",options:["四抓","四出","三出","地窖"],ans:0,exp:"四抓即监管淘汰全部四人。"},
+  {diff:"hell",cat:"第五人格",q:"修密码机即将完成时留一点进度、等待队友信号再开，叫：",options:["压机","开机","跑路","救人"],ans:0,exp:"压机指留最后一点密码机进度待命。"},
+  {diff:"hell",cat:"第五人格",q:"求生者利用板窗快速翻板翻窗拉开距离，核心技巧叫：",options:["牵制","救人","压机","投降"],ans:0,exp:"牵制指求生者遛鬼、拉开监管距离。"},
+  {diff:"hell",cat:"第五人格",q:"监管者守着狂欢之椅、阻止队友救人，叫：",options:["守椅","压机","开门","地窖"],ans:0,exp:"守椅指监管守住挂人的椅子阻止救援。"},
+  {diff:"easy",cat:"通用",q:"群里有人连发“绝绝子”，他最想表达的是：",options:["太棒了、很赞","太难吃了","很无语","想睡觉"],ans:0,exp:"绝绝子是夸赞很棒、很绝的网络流行语。"},
+  {diff:"easy",cat:"通用",q:"这件衣服性价比超高、买得很值，网友会说买得真：",options:["值","亏","雷","坑"],ans:0,exp:"值形容划算、物超所值。"},
+  {diff:"easy",cat:"通用",q:"说话阴阳怪气、绵里藏针地怼人，网友形容为：",options:["阴阳怪气","真诚直球","热情好客","老实巴交"],ans:0,exp:"阴阳怪气指话里带刺、拐弯抹角嘲讽。"},
+  {diff:"easy",cat:"通用",q:"直来直去、毫不绕弯子表达想法，这种风格叫：",options:["直球","阴阳怪气","佛系","摆烂"],ans:0,exp:"直球指直白坦率、不绕弯子。"},
+  {diff:"easy",cat:"通用",q:"被问问题时一脸懵、不知道怎么接，网友刷：",options:["蚌埠住了","拿捏了","起飞了","上岸了"],ans:0,exp:"蚌埠住了=绷不住了，指情绪/表情忍不住。"},
+  {diff:"easy",cat:"通用",q:"努力备考终于考上目标院校/岗位，网友恭喜说：",options:["上岸了","翻车了","躺平了","卡bug了"],ans:0,exp:"上岸指通过考试、成功考上目标。"},
+  {diff:"easy",cat:"通用",q:"计划好的事临时出变故、黄掉了，叫：",options:["泡汤","起飞","上岸","拿捏"],ans:0,exp:"泡汤指计划落空、没能成行。"},
+  {diff:"easy",cat:"通用",q:"忙得脚不沾地、连轴转，网友自嘲是：",options:["打工人","CEO","躺平党","神仙"],ans:0,exp:"打工人是对辛苦上班族的自嘲称呼。"},
+  {diff:"easy",cat:"通用",q:"工资刚到账就花光、留不住钱，网友调侃月光：",options:["月光族","存钱党","理财达人","富翁"],ans:0,exp:"月光族指每月工资花光、存不下钱。"},
+  {diff:"easy",cat:"通用",q:"被生活捶得麻木、佛系随缘不较劲，这种心态叫：",options:["佛系","躺赢","内卷","上头"],ans:0,exp:"佛系指不争不抢、随缘看淡。"},
+  {diff:"easy",cat:"通用",q:"对一件事特别投入、越玩越上瘾停不下来，叫：",options:["上头","下头","躺平","断网"],ans:0,exp:"上头指情绪/兴趣被勾起、上瘾停不下来。"},
+  {diff:"easy",cat:"通用",q:"本来有好感，看完某些言行后瞬间没兴趣了，叫：",options:["下头","上头","种草","拿捏"],ans:0,exp:"下头指好感消退、兴致骤降。"},
+  {diff:"easy",cat:"通用",q:"把话说满、先立个必胜flag，结果马上被打脸，叫：",options:["立flag","上岸","存档","通关"],ans:0,exp:"立flag指先放话、立下目标，常被打脸。"},
+  {diff:"easy",cat:"通用",q:"看到内容过于震撼，忍不住转发给朋友，这种行为属于：",options:["安利扩散","孤芳自赏","闭关锁网","躺平不动"],ans:0,exp:"安利即主动推荐分享给别人。"},
+  {diff:"easy",cat:"通用",q:"别人好心推荐、被种了草，这位推荐的人叫：",options:["安利官","黑粉","路人","演员"],ans:0,exp:"安利指推荐好物/内容给别人。"},
+  {diff:"easy",cat:"通用",q:"说话做事没主见、随大流被带着走，网友形容像：",options:["随波逐流","独当一面","carry全场","逆风翻盘"],ans:0,exp:"随波逐流指没主见、跟着大众走。"},
+  {diff:"easy",cat:"通用",q:"事情进展顺利、一路绿灯，网友说顺得：",options:["起飞","翻车","卡壳","白给"],ans:0,exp:"起飞形容势头很猛、进展飞快。"},
+  {diff:"easy",cat:"通用",q:"关键时刻掉链子、好事办砸，叫：",options:["翻车","通关","拿捏","上岸"],ans:0,exp:"翻车指原本顺利的事突然搞砸。"},
+  {diff:"easy",cat:"通用",q:"视频里人物突然出现夸张夸张表情/动作逗乐观众，这种桥段叫：",options:["名场面","正片开始","严肃播报","学术讲解"],ans:0,exp:"名场面指经典出圈、值得反复回看的片段。"},
+  {diff:"easy",cat:"通用",q:"评论区一排复制粘贴的整齐队形，叫：",options:["刷屏","潜水","私聊","拉黑"],ans:0,exp:"刷屏指大量相同内容铺满屏幕。"},
+  {diff:"easy",cat:"通用",q:"只看内容不发言、长期隐身的网友，叫：",options:["潜水","潜水员","喷子","博主"],ans:0,exp:"潜水指只看不说话、隐身围观。"},
+  {diff:"easy",cat:"通用",q:"在评论区故意抬杠、挑刺引战的人，叫：",options:["杠精","路人粉","搭子","学霸"],ans:0,exp:"杠精指凡事抬杠、爱挑刺的人。"},
+  {diff:"easy",cat:"通用",q:"内容看完让人心情舒畅、很解压，网友评价：",options:["治愈","致郁","破防","翻车"],ans:0,exp:"治愈指内容温暖、让人放松舒服。"},
+  {diff:"easy",cat:"通用",q:"内容压抑难受、看完心情低落，网友评价：",options:["致郁","治愈","上头","种草"],ans:0,exp:"致郁指让人emo、心情压抑。"},
+  {diff:"easy",cat:"通用",q:"为了省钱凑满减、拉人拼团，网友自嘲是：",options:["凑单选手","富豪","躺平党","大佬"],ans:0,exp:"凑单指为满减优惠搭配下单。"},
+  {diff:"easy",cat:"通用",q:"看到喜欢的东西忍不住一口气买很多，叫：",options:["剁手","拔草","囤货理性","收手"],ans:0,exp:"剁手指忍不住冲动消费。"},
+  {diff:"easy",cat:"通用",q:"把想买的东西记下来、等降价再入手，叫：",options:["加购物车","直接清空","白给","翻车"],ans:0,exp:"加购物车指先收藏、暂不下单。"},
+  {diff:"easy",cat:"通用",q:"评论区对内容表示认可、点赞附和，常刷：",options:["说得对","退退退","阿巴阿巴","难评"],ans:0,exp:"说得对是认同附和的常见回复。"},
+  {diff:"easy",cat:"通用",q:"对某件事保持观望、不急着下结论，网友说先：",options:["观望","冲了","拿下","翻车"],ans:0,exp:"观望指先看情况、暂不行动。"},
+  {diff:"easy",cat:"通用",q:"事情没搞清楚就急着冲上前、跟风下单，叫：",options:["冲动冲","理性蹲","观望","做功课"],ans:0,exp:"冲动冲指没了解清楚就跟风行动。"},
+  {diff:"mid",cat:"通用",q:"表面客气答应、实际内心拒绝敷衍，这种话术叫：",options:["敷衍文学","直球表白","硬核论证","官方公告"],ans:0,exp:"敷衍文学指嘴上应付、内心不认同的话术。"},
+  {diff:"mid",cat:"通用",q:"用很夸张的语气包装普通小事，制造戏剧效果，叫：",options:["情绪价值","严肃播报","学术论文","新闻通稿"],ans:0,exp:"情绪价值指提供情绪上的安抚与共鸣。"},
+  {diff:"mid",cat:"通用",q:"一段文字/视频反复看很多遍、百看不厌，叫：",options:["N刷","弃坑","烂尾","跑单"],ans:0,exp:"N刷指反复观看多次。"},
+  {diff:"mid",cat:"通用",q:"追了一半的作品中途放弃、不再跟进，叫：",options:["弃坑","入坑","填坑","连载"],ans:0,exp:"弃坑指中途放弃不再追。"},
+  {diff:"mid",cat:"通用",q:"被内容吸引、正式开始追更一部作品，叫：",options:["入坑","出坑","弃坑","完结"],ans:0,exp:"入坑指开始沉迷、追更某作品。"},
+  {diff:"mid",cat:"通用",q:"作品更新缓慢、迟迟不更，读者吐槽作者在：",options:["挖坑","填坑","完结","封神"],ans:0,exp:"挖坑指留下悬念/未更新的剧情。"},
+  {diff:"mid",cat:"通用",q:"把之前埋下的悬念交代清楚、补上剧情，叫：",options:["填坑","挖坑","烂尾","弃坑"],ans:0,exp:"填坑指回收伏笔、补上剧情。"},
+  {diff:"mid",cat:"通用",q:"线上聊得火热、线下见面却尴尬冷场，这种反差叫：",options:["见光死","双向奔赴","贴贴","上岸"],ans:0,exp:"见光死指线上好、线下见面就崩。"},
+  {diff:"mid",cat:"通用",q:"双方互相喜欢、双向奔赴，网友形容感情：",options:["双向奔赴","单向暗恋","剃头挑子","各奔东西"],ans:0,exp:"双向奔赴指双方互相主动、彼此喜欢。"},
+  {diff:"mid",cat:"通用",q:"单方面默默付出、对方没回应，叫：",options:["单向奔赴","双向奔赴","贴贴","上头"],ans:0,exp:"单向奔赴指只有一方付出。"},
+  {diff:"mid",cat:"通用",q:"聊天时只回一个“哦”“嗯”，这种敷衍回复叫：",options:["敷衍式聊天","直球告白","热情互动","秒回"],ans:0,exp:"敷衍式聊天指回复冷淡、应付了事。"},
+  {diff:"mid",cat:"通用",q:"消息秒回、热情接话，聊天体验很好，叫：",options:["聊天搭子","杠精","潜水员","黑粉"],ans:0,exp:"聊天搭子指陪你聊天互动的伙伴。"},
+  {diff:"mid",cat:"通用",q:"被别人的言行气到、一时语塞说不出话，叫：",options:["破防失语","拿捏住了","起飞上岸","轻松拿捏"],ans:0,exp:"被气到语塞是破防、无言以对的表现。"},
+  {diff:"mid",cat:"通用",q:"事情做得滴水不漏、挑不出毛病，网友说这波很：",options:["稳","菜","白给","翻车"],ans:0,exp:"稳形容操作/结果可靠、不出错。"},
+  {diff:"mid",cat:"通用",q:"状态时好时坏、起伏很大，网友说他发挥：",options:["不稳定","很稳","碾压","通关"],ans:0,exp:"不稳定指发挥忽好忽坏。"},
+  {diff:"mid",cat:"通用",q:"把复杂问题简单化解、轻松搞定，网友说他：",options:["轻松拿捏","被迫翻车","原地破防","卡bug掉线"],ans:0,exp:"轻松拿捏指不费力就掌控局面。"},
+  {diff:"mid",cat:"通用",q:"看到离谱发言想怼又懒得打字，网友选择：",options:["闭麦","开喷","对线","刷屏"],ans:0,exp:"闭麦指关闭发言、不参与争论。"},
+  {diff:"mid",cat:"通用",q:"在评论区跟人你来我往争执辩论，叫：",options:["对线","潜水","安利","躺平"],ans:0,exp:"对线指在网上与人争论互怼。"},
+  {diff:"mid",cat:"通用",q:"被举报/被限流导致内容看不到，账号被：",options:["限流","起飞","置顶","加精"],ans:0,exp:"限流指内容被限制曝光、推流减少。"},
+  {diff:"mid",cat:"通用",q:"内容被推上热门、很多人刷到，叫：",options:["上热门","限流","下沉","折叠"],ans:0,exp:"上热门指内容获得大量曝光。"},
+  {diff:"hell",cat:"通用",q:"明明道理在自己这边，却被对方强词夺理绕晕，叫：",options:["被CPU了","拿捏了","上岸了","稳赢了"],ans:0,exp:"被CPU/PUA指被话术绕晕、自我怀疑。"},
+  {diff:"hell",cat:"通用",q:"被别人反复洗脑、潜移默化接受了不合理要求，属于：",options:["PUA","种草","上岸","通关"],ans:0,exp:"PUA指精神操控、打压后让对方顺从。"},
+  {diff:"hell",cat:"通用",q:"表面夸你、实则贬损，笑着把人踩一脚，叫：",options:["捧杀","直球鼓励","真诚建议","加油打气"],ans:0,exp:"捧杀指先抬高再毁掉、嘴上夸实则害。"},
+  {diff:"hell",cat:"通用",q:"用幽默自嘲化解尴尬，不让自己下不来台，叫：",options:["自黑","凡尔赛","卖惨","说教"],ans:0,exp:"自黑是主动自嘲、化解尴尬。"},
+  {diff:"hell",cat:"通用",q:"明明很优秀还要反复说自己不行，暗地炫耀，叫：",options:["凡尔赛","自黑","躺平","佛系"],ans:0,exp:"凡尔赛指低调炫耀、反向卖惨式显摆。"},
+  {diff:"hell",cat:"通用",q:"刻意卖惨博同情、夸大难处，网友评价：",options:["卖惨","自黑","直球","稳赢"],ans:0,exp:"卖惨指刻意渲染可怜博取同情。"},
+  {diff:"hell",cat:"通用",q:"信息只在小圈子里流传、外人不知道，叫：",options:["圈内梗","全网爆火","公开新闻","热搜头条"],ans:0,exp:"圈内梗指小圈层内部才懂的梗。"},
+  {diff:"hell",cat:"通用",q:"梗出圈后被误用、原意被歪曲，网友常说被：",options:["玩烂了","收藏了","封神了","上岸了"],ans:0,exp:"玩烂了指梗被过度滥用、变味。"},
+  {diff:"hell",cat:"通用",q:"老梗翻红、重新被拿出来玩，这种现象叫：",options:["文艺复兴","烂尾","下线","限流"],ans:0,exp:"文艺复兴指老梗/老内容重新流行。"},
+  {diff:"hell",cat:"通用",q:"一个梗刚火、还没被滥用时的新鲜期，叫：",options:["梗新鲜期","梗烂尾","梗下线","梗限流"],ans:0,exp:"新鲜期指梗刚出圈、用法还地道的时候。"},
+  {diff:"mid",cat:"土味抽象",q:"视频里一本正经地胡说八道、越离谱越好笑，抽象圈叫：",options:["整活","搬砖","打卡","签到"],ans:0,exp:"整活指搞创意、玩花样出节目效果。"},
+  {diff:"mid",cat:"土味抽象",q:"把普通日常拍出浮夸戏剧感、配夸张BGM，属于：",options:["抽象整活","严肃记录","新闻纪实","学术分析"],ans:0,exp:"夸张包装日常是抽象整活的常见手法。"},
+  {diff:"mid",cat:"土味抽象",q:"评论区集体玩同一句魔性复读、刷屏接龙，叫：",options:["复读","潜水","拉黑","置顶"],ans:0,exp:"复读指集体重复同一句话玩梗。"},
+  {diff:"mid",cat:"土味抽象",q:"说话颠三倒四、逻辑离谱让人看不懂，网友形容：",options:["抽象","严谨","理性","官方"],ans:0,exp:"抽象指表达离谱、难懂、不按常理。"},
+  {diff:"mid",cat:"土味抽象",q:"用方言/口音魔性翻唱歌曲爆火，属于哪类整活：",options:["魔性翻唱","严肃演唱","歌剧表演","新闻播报"],ans:0,exp:"魔性翻唱是口音/改编带来的整活效果。"},
+  {diff:"mid",cat:"土味抽象",q:"表情包配文“我看不懂但我大受震撼”，用来形容：",options:["离谱到看不懂","完全理解","深受感动","平静无感"],ans:0,exp:"该梗用于形容内容离谱、看不懂但被震撼到。"},
+  {diff:"mid",cat:"土味抽象",q:"明明是自己选的路，哭着也要走完，自嘲属于：",options:["自作自受","躺赢","天降好运","白捡便宜"],ans:0,exp:"这句是自嘲自己选的坑自己扛。"},
+  {diff:"mid",cat:"土味抽象",q:"嘴上说“我没事”，实际情绪已经崩了，属于：",options:["嘴硬","直球","凡尔赛","上岸"],ans:0,exp:"嘴硬指嘴上逞强、不肯承认难受。"},
+  {diff:"mid",cat:"土味抽象",q:"被怼得哑口无言、只能尴尬陪笑，网友截图配文：",options:["尴尬又不失礼貌","自信满满","碾压全场","拿捏对方"],ans:0,exp:"尴尬又不失礼貌是经典自嘲表情包文案。"},
+  {diff:"mid",cat:"土味抽象",q:"什么都不想干、只想躺着刷手机，这种摆烂状态叫：",options:["躺平摆烂","冲锋内卷","打怪升级","上岸冲刺"],ans:0,exp:"躺平摆烂指什么都不想做、佛系瘫着。"},
+  {diff:"hell",cat:"土味抽象",q:"“你这背景比我脸还干净”属于哪类玩梗句式：",options:["夸张对比","严肃陈述","新闻标题","公式推导"],ans:0,exp:"这是夸张对比式的抽象吐槽句式。"},
+  {diff:"hell",cat:"土味抽象",q:"把无关事物强行押韵凑成顺口溜，抽象圈叫：",options:["强行押韵","硬核论证","学术综述","官方声明"],ans:0,exp:"强行押韵指硬凑韵脚的魔性顺口溜。"},
+  {diff:"hell",cat:"土味抽象",q:"视频博主突然画风突变、放飞自我整大活，观众弹幕刷：",options:["活整挺好","退退退","下班了","散会了"],ans:0,exp:"“活整挺好”是夸整活效果到位的弹幕。"},
+  {diff:"hell",cat:"土味抽象",q:"明明很尬却硬演、观众脚趾抠地，这种内容叫：",options:["尬演","封神","治愈","上岸"],ans:0,exp:"尬演指表演尴尬、让人脚趾抠地。"},
+  {diff:"hell",cat:"土味抽象",q:"用很土很直白的方式表达强烈情感，这种风格叫：",options:["土味","高级感","性冷淡风","极简风"],ans:0,exp:"土味指直白浮夸、接地气的风格。"},
+  {diff:"hell",cat:"土味抽象",q:"把网络热词堆砌进一句话、梗味很浓，网友说这波：",options:["梗味冲","很克制","很官方","很学术"],ans:0,exp:"梗味冲指网络梗密度高、网感强。"},
+  {diff:"mid",cat:"外网",q:"外网视频里角色原地跳起夸张舞蹈配魔性BGM，属于哪类趋势：",options:["dance trend","news report","lecture","documentary"],ans:0,exp:"dance trend即舞蹈挑战类流行趋势。"},
+  {diff:"mid",cat:"外网",q:"外网流行的“点名接力”、@好友参与挑战，叫：",options:["tag challenge","quiet quitting","gaslight","hustle"],ans:0,exp:"tag challenge即点名接力挑战。"},
+  {diff:"mid",cat:"外网",q:"外网形容某件事完全没必要、多此一举，说：",options:["pointless","based","slay","W"],ans:0,exp:"pointless指毫无意义、多此一举。"},
+  {diff:"mid",cat:"外网",q:"外网形容某人很会来事、社交手腕强，叫：",options:["smooth","cringe","mid","sus"],ans:0,exp:"smooth形容圆滑得体、很会处事。"},
+  {diff:"mid",cat:"外网",q:"外网对离谱内容表示无语，常回复：",options:["what","based","slay","W"],ans:0,exp:"what表示震惊无语、不敢相信。"},
+  {diff:"hell",cat:"外网",q:"外网游戏圈“GG”原本的意思是：",options:["Good Game 打得好","Go Go 冲","Get Good 变强","Game Over 结束"],ans:0,exp:"GG=Good Game，对局结束时礼貌称赞对手。"},
+  {diff:"hell",cat:"外网",q:"外网游戏里嘲讽对手“GG”现在常被用来表示：",options:["认输/嘲讽结束","加油鼓励","组队邀请","求带飞"],ans:0,exp:"现在GG常被反用来嘲讽对手被打崩。"},
+  {diff:"hell",cat:"外网",q:"外网“NPC”梗里，按流程机械生活、没情绪波动的人叫：",options:["NPC","Chad","Sigma","boss"],ans:0,exp:"NPC比喻机械重复、没自主情绪的人。"},
+  {diff:"hell",cat:"外网",q:"外网形容一段关系里互相拉扯、分分合合，叫：",options:["on and off","based","viral","mid"],ans:0,exp:"on and off指关系忽好忽坏、分分合合。"},
+  {diff:"hell",cat:"外网",q:"外网“main character”梗的反面，透明背景板路人叫：",options:["extra","lead","hero","star"],ans:0,exp:"extra即龙套、背景板群演。"},
+  {diff:"mid",cat:"电竞",q:"对局开始前双方展示阵容、互相试探，叫：",options:["BP博弈","结算复盘","挂机摸鱼","赛后采访"],ans:0,exp:"BP阶段双方禁用选用角色、博弈阵容。"},
+  {diff:"mid",cat:"电竞",q:"打完一局后回看录像、分析失误，电竞术语叫：",options:["复盘","开黑","gank","farm"],ans:0,exp:"复盘指赛后回看对局、总结问题。"},
+  {diff:"mid",cat:"电竞",q:"几个好友组队一起开麦打游戏，叫：",options:["开黑","单排","挂机OB","代练"],ans:0,exp:"开黑指好友组队联机配合。"},
+  {diff:"mid",cat:"电竞",q:"一个人随机匹配路人队友打，叫：",options:["单排","开黑","组队","战队"],ans:0,exp:"单排指独自匹配、没有固定队友。"},
+  {diff:"mid",cat:"电竞",q:"游戏里麦克风开着和队友语音交流，叫：",options:["开麦","闭麦","静音","挂机"],ans:0,exp:"开麦指开启语音麦克风。"},
+  {diff:"mid",cat:"电竞",q:"对局中挂机不动、不参与操作，叫：",options:["挂机","carry","gank","翻盘"],ans:0,exp:"挂机指人物离线、不操作。"},
+  {diff:"mid",cat:"电竞",q:"游戏内货币/资源积累起来用于购买装备，叫：",options:["攒经济","白给","掉线","投降"],ans:0,exp:"攒经济指积累资源买装备提升实力。"},
+  {diff:"hell",cat:"电竞",q:"职业比赛里选手状态低迷、连续失误，解说说他：",options:["拉胯","起飞","碾压","carry"],ans:0,exp:"拉胯指状态差、发挥失误。"},
+  {diff:"hell",cat:"电竞",q:"职业选手突然爆发、数据亮眼，解说形容状态：",options:["火热","低迷","躺平","白给"],ans:0,exp:"状态火热指发挥极佳、手感发烫。"},
+  {diff:"hell",cat:"电竞",q:"队伍配合默契、战术执行到位，电竞形容为：",options:["团队协作","各自为战","白给送头","单人OB"],ans:0,exp:"团队协作指队友配合默契、战术统一。"},
+  {diff:"hell",cat:"电竞",q:"比赛里出现规则外的bug影响公平，需要：",options:["重赛","加时","投降","挂机"],ans:0,exp:"bug导致不公时通常安排重赛。"},
+  {diff:"hell",cat:"电竞",q:"一局比赛耗时很短、迅速结束，解说称：",options:["速通局","养生局","拉锯战","膀胱局"],ans:0,exp:"速通局指快速结束的对局。"},
+  {diff:"hell",cat:"电竞",q:"比赛拖很久、双方僵持不下，被调侃为：",options:["膀胱局","速通局","一波流","白给局"],ans:0,exp:"膀胱局指耗时极长、憋尿也要看完的对局。"},
+  {diff:"mid",cat:"童年游戏",q:"游戏里存盘点之间往返跑、赶路浪费时间，叫：",options:["跑图","开荒","通关","秒杀"],ans:0,exp:"跑图指在地图间移动赶路。"},
+  {diff:"mid",cat:"童年游戏",q:"游戏场景里可交互、能拾取的物品道具，叫：",options:["掉落物","Boss","NPC","水晶"],ans:0,exp:"掉落物指击败后可拾取的道具奖励。"},
+  {diff:"mid",cat:"童年游戏",q:"游戏内完成任务获得的荣誉凭证/勋章，叫：",options:["成就","日常","背包","副本"],ans:0,exp:"成就指达成特定条件解锁的荣誉记录。"},
+  {diff:"mid",cat:"童年游戏",q:"多人合作挑战的高难度关卡副本，叫：",options:["组队副本","新手村","单人主线","回城"],ans:0,exp:"副本指专门挑战的关卡场景。"},
+  {diff:"mid",cat:"童年游戏",q:"主线剧情之外的支线小故事任务，叫：",options:["支线任务","主线任务","日常签到","背包整理"],ans:0,exp:"支线任务是主线之外的附加内容。"},
+  {diff:"hell",cat:"童年游戏",q:"反复刷同一关卡只为掉落稀有道具，游戏圈叫：",options:["肝掉落","下线","通关","重开"],ans:0,exp:"肝掉落指反复刷关刷稀有奖励。"},
+  {diff:"hell",cat:"童年游戏",q:"不充值纯靠时间积累慢慢变强，叫：",options:["零氪","重氪","代练","炸鱼"],ans:0,exp:"零氪指完全不花钱、纯免费游玩。"},
+  {diff:"hell",cat:"童年游戏",q:"大量充值抽卡、把资源拉满，叫：",options:["重氪","零氪","佛系","躺平"],ans:0,exp:"重氪指大量充值氪金。"},
+  {diff:"hell",cat:"童年游戏",q:"游戏里通过买卖道具赚游戏币的玩家，叫：",options:["商人","NPC","Boss","混子"],ans:0,exp:"商人指靠交易道具牟利的玩家。"},
+  {diff:"hell",cat:"童年游戏",q:"账号角色等级低、刚入坑不久的玩家，叫：",options:["萌新","大神","大佬","元老"],ans:0,exp:"萌新指新手、刚入坑的玩家。"},
+  {diff:"hell",cat:"童年游戏",q:"玩了很久、经验丰富的老玩家，叫：",options:["老玩家","萌新","路人","演员"],ans:0,exp:"老玩家指资历深、玩得久的玩家。"},
+  {diff:"mid",cat:"影视综艺",q:"综艺节目里嘉宾临场反应、即兴发挥的片段，叫：",options:["即兴名场面","剧本台词","后期配音","广告插播"],ans:0,exp:"即兴名场面指无剧本的临场高光片段。"},
+  {diff:"mid",cat:"影视综艺",q:"作品里隐藏的小细节、二刷才发现的彩蛋，叫：",options:["彩蛋","正片","预告片","片尾曲"],ans:0,exp:"彩蛋指隐藏在作品里的小惊喜细节。"},
+  {diff:"hell",cat:"影视综艺",q:"剪辑时把前后无关片段拼在一起制造反差搞笑效果，叫：",options:["鬼畜剪辑","纪录片","新闻联播","学术短片"],ans:0,exp:"鬼畜指重复拼接、节奏魔性的剪辑。"},
+  {diff:"hell",cat:"影视综艺",q:"把影视片段重新配音改编成搞笑二创视频，叫：",options:["二创","正版授权","官方续集","新闻报道"],ans:0,exp:"二创指基于原作的二次创作改编。"},
+  {diff:"hell",cat:"影视综艺",q:"影视剧放出的短小预告、吊人胃口的片段，叫：",options:["预告片","正片","花絮","演员表"],ans:0,exp:"预告片是正片前的宣传片段。"},
+  {diff:"hell",cat:"影视综艺",q:"拍摄现场未剪进正片的幕后搞笑片段，叫：",options:["花絮","正片","预告","彩蛋"],ans:0,exp:"花絮是拍摄幕后的未公开片段。"},
+  {diff:"easy",cat:"通用",q:"收到消息很久才回、隔了半天才冒个泡，网友说自己：",options:["延迟上线","秒回在线","全程挂机","满血复活"],ans:0,exp:"延迟上线是自嘲回消息慢、刚看到。"},
+  {diff:"easy",cat:"通用",q:"群里聊得热火朝天，他只默默看着不说话，属于：",options:["潜水围观","开麦对线","刷屏安利","带队冲锋"],ans:0,exp:"潜水指只看不发言、隐身围观。"},
+  {diff:"easy",cat:"通用",q:"被朋友拉进群后发现全是不认识的人，尴尬得想：",options:["退群","潜水","刷屏","置顶"],ans:0,exp:"退群指离开不熟悉的群聊。"},
+  {diff:"easy",cat:"通用",q:"看到好笑的段子一个人对着手机傻笑，被室友撞见，属于：",options:["独自傻笑","公开演讲","严肃开会","商务谈判"],ans:0,exp:"独自刷梗傻笑是典型上网状态。"},
+  {diff:"easy",cat:"通用",q:"刷到同款穿搭被问链接，这种互相分享好物的行为叫：",options:["安利","回踩","塌房","爬墙"],ans:0,exp:"安利指主动推荐分享好物。"},
+  {diff:"easy",cat:"通用",q:"东西还没到手就开始想象使用场景，网友说已经：",options:["提前脑补","彻底拔草","翻车退坑","下线躺平"],ans:0,exp:"脑补指在脑海里自行想象场景。"},
+  {diff:"easy",cat:"通用",q:"计划周末出去玩，结果临时下雨全泡汤，属于：",options:["计划泡汤","顺利上岸","通关成功","拿捏全场"],ans:0,exp:"泡汤指计划临时落空。"},
+  {diff:"easy",cat:"通用",q:"考试前临时抱佛脚、熬夜突击复习，网友自嘲：",options:["临时抱佛脚","胸有成竹","躺赢上岸","carry全场"],ans:0,exp:"临时抱佛脚指考前突击准备。"},
+  {diff:"easy",cat:"通用",q:"考完感觉自己答得一塌糊涂，自嘲要：",options:["寄了","上岸了","起飞了","拿捏了"],ans:0,exp:"寄了=G了，自嘲事情要完蛋。"},
+  {diff:"easy",cat:"通用",q:"结果出来竟然过了，他惊喜地说：",options:["居然活下来了","寄了","翻车了","白给了"],ans:0,exp:"“活下来了”是侥幸过关的自嘲说法。"},
+  {diff:"easy",cat:"通用",q:"排队很久终于买到热门商品，网友说这波是：",options:["蹲到了","翻车了","白给了","下线了"],ans:0,exp:"蹲到了指等待后终于等到。"},
+  {diff:"easy",cat:"通用",q:"商品刚上架就被抢光、没抢到，叫：",options:["秒空","补货","现货","掉落"],ans:0,exp:"秒空指上架瞬间被抢光。"},
+  {diff:"easy",cat:"通用",q:"看到价格便宜忍不住下单，事后又后悔，属于：",options:["冲动消费","理性囤货","做功课","拼单"],ans:0,exp:"冲动消费指没忍住、事后后悔的购买。"},
+  {diff:"easy",cat:"通用",q:"把不常用的闲置挂到二手平台卖掉回血，叫：",options:["出闲置","囤货","种草","拔草"],ans:0,exp:"出闲置指转卖不用的二手物品。"},
+  {diff:"easy",cat:"通用",q:"网上冲浪看到争议话题，先不站队、吃瓜观望，叫：",options:["吃瓜","对线","开喷","控评"],ans:0,exp:"吃瓜指围观事件、暂不表态。"},
+  {diff:"easy",cat:"通用",q:"事件持续反转、剧情不断更新，网友追着看叫：",options:["追瓜","弃坑","下线","躺平"],ans:0,exp:"追瓜指持续围观事件进展。"},
+  {diff:"easy",cat:"通用",q:"当事人出来回应、给出说法，网友称之为：",options:["发声","闭麦","潜水","下线"],ans:0,exp:"发声指当事人公开表态回应。"},
+  {diff:"easy",cat:"通用",q:"被人误解后懒得解释、选择沉默，叫：",options:["懒得解释","对线到底","刷屏澄清","开麦回怼"],ans:0,exp:"懒得解释是佛系不辩的态度。"},
+  {diff:"easy",cat:"通用",q:"聊天时发表情包代替打字，这种沟通方式叫：",options:["表情包沟通","书面报告","正式公文","学术答辩"],ans:0,exp:"用表情包接话是常见网感沟通方式。"},
+  {diff:"easy",cat:"通用",q:"一个表情能表达开心/无语/嘲讽等多种情绪，说明表情包很：",options:["万能","单一","严肃","官方"],ans:0,exp:"表情包可承载多种情绪、用法灵活。"},
+  {diff:"easy",cat:"通用",q:"刷到视频BGM太洗脑、脑子里循环一整天，叫：",options:["洗脑循环","安静治愈","下线断网","烂尾弃坑"],ans:0,exp:"洗脑指旋律/内容反复在脑中循环。"},
+  {diff:"easy",cat:"通用",q:"听到某首老歌突然回忆起过去，属于：",options:["怀旧破防","上头翻车","白给下线","躺平摆烂"],ans:0,exp:"怀旧破防指被旧事物勾起情绪。"},
+  {diff:"easy",cat:"通用",q:"朋友聚会他全程活跃气氛、逗大家笑，属于：",options:["气氛担当","边缘路人","挂机潜水","冷场王"],ans:0,exp:"气氛担当指负责活跃气氛的人。"},
+  {diff:"easy",cat:"通用",q:"他一开口就把天聊死、全场安静，属于：",options:["冷场王","气氛担当","社交牛人","carry全场"],ans:0,exp:"冷场王指容易让气氛尴尬降温的人。"},
+  {diff:"mid",cat:"通用",q:"嘴上说随便、心里其实很有想法，这种口是心非叫：",options:["口是心非","直球表达","真诚坦率","公开表态"],ans:0,exp:"口是心非指嘴上说的和心里想的不一致。"},
+  {diff:"mid",cat:"通用",q:"把自己的喜好强加给别人、劝人按自己来，叫：",options:["道德绑架","尊重差异","佛系随缘","安利分享"],ans:0,exp:"道德绑架指用立场强迫别人顺从。"},
+  {diff:"mid",cat:"通用",q:"对别人的生活指手画脚、爱管闲事，网友评价：",options:["多管闲事","热心帮忙","理性建议","边界感强"],ans:0,exp:"多管闲事指过度干涉别人的事。"},
+  {diff:"mid",cat:"通用",q:"说话留有余地、不把话说死，这种处事方式叫：",options:["留余地","立flag","冲到底","白给送"],ans:0,exp:"留余地指不把话说满、给自己退路。"},
+  {diff:"mid",cat:"通用",q:"事情还没成就到处炫耀，结果最后没做成，属于：",options:["提前立flag","稳操胜券","低调上岸","拿捏全场"],ans:0,exp:"提前炫耀常被打脸、属于立flag。"},
+  {diff:"mid",cat:"通用",q:"被夸之后谦虚回“没有没有”，实际心里偷乐，属于：",options:["嘴上谦虚","凡尔赛","直球炫耀","躺平摆烂"],ans:0,exp:"嘴上谦虚是表面客气、内心开心。"},
+  {diff:"mid",cat:"通用",q:"连续倒霉、喝凉水都塞牙，网友自嘲今天：",options:["水逆","起飞","上岸","拿捏"],ans:0,exp:"水逆形容近期诸事不顺、运气差。"},
+  {diff:"mid",cat:"通用",q:"运气突然变好、好事接连发生，网友说自己：",options:["欧气爆棚","水逆翻车","白给下线","躺平摆烂"],ans:0,exp:"欧气爆棚指运气突然变好。"},
+  {diff:"mid",cat:"通用",q:"把好运分享给别人、沾沾喜气，网友叫：",options:["蹭欧气","回踩","塌房","爬墙"],ans:0,exp:"蹭欧气指沾别人的好运气。"},
+  {diff:"mid",cat:"通用",q:"看到别人出糗忍不住笑出声，又觉得不太好意思，属于：",options:["憋笑","破防","翻车","下线"],ans:0,exp:"憋笑指想笑又忍住。"},
+  {diff:"mid",cat:"通用",q:"被戳中笑点后笑到停不下来、拍桌子，属于：",options:["笑不活了","破防落泪","emo躺平","闭麦沉默"],ans:0,exp:"笑不活了=笑死了，形容笑得停不下来。"},
+  {diff:"mid",cat:"通用",q:"内容又菜又好笑、越看越上头，网友评价：",options:["又菜又爱玩","高端专业","严肃枯燥","官方正经"],ans:0,exp:"又菜又爱玩形容水平一般还乐在其中。"},
+  {diff:"mid",cat:"通用",q:"明明不会还硬要上、结果翻车，属于：",options:["逞能翻车","稳赢上岸","低调拿捏","carry全场"],ans:0,exp:"逞能翻车指硬撑着上、结果搞砸。"},
+  {diff:"mid",cat:"通用",q:"做事情前先做好最坏打算、留好退路，叫：",options:["未雨绸缪","裸辞冲锋","白给送头","躺平摆烂"],ans:0,exp:"未雨绸缪指提前准备、留后路。"},
+  {diff:"mid",cat:"通用",q:"消息已读却一直不回，这种行为叫：",options:["已读不回","秒回在线","开麦互动","置顶提醒"],ans:0,exp:"已读不回指看了消息却不回复。"},
+  {diff:"mid",cat:"通用",q:"看到消息第一时间回复、从不拖延，叫：",options:["秒回","已读不回","潜水","挂机"],ans:0,exp:"秒回指消息一来立刻回复。"},
+  {diff:"hell",cat:"通用",q:"把复杂人情世故看得通透、不内耗，网友形容为：",options:["人间清醒","恋爱上头","被PUA","躺平摆烂"],ans:0,exp:"人间清醒指拎得清、不被情绪带偏。"},
+  {diff:"hell",cat:"通用",q:"陷入感情/情绪里反复纠结、走不出来，叫：",options:["内耗","上岸","拿捏","通关"],ans:0,exp:"内耗指内心反复纠结、自我消耗。"},
+  {diff:"hell",cat:"通用",q:"想通之后放下执念、不再纠结，叫：",options:["释怀","上头","破防","执念加深"],ans:0,exp:"释怀指放下心结、不再纠结。"},
+  {diff:"hell",cat:"通用",q:"把别人随口一句话反复琢磨、对号入座，属于：",options:["过度敏感","人间清醒","佛系随缘","直球表达"],ans:0,exp:"过度敏感指容易把话往自己身上联想。"},
+  {diff:"hell",cat:"通用",q:"在社交场合刻意讨好、迎合所有人，叫：",options:["讨好型人格","社牛直球","佛系躺平","杠精对线"],ans:0,exp:"讨好型人格指习惯性迎合别人、怕得罪人。"},
+  {diff:"hell",cat:"通用",q:"拒绝别人时不好意思开口、勉强答应，属于：",options:["不会拒绝","直球拒绝","边界清晰","果断下线"],ans:0,exp:"不会拒绝指碍于情面勉强答应别人。"},
+  {diff:"hell",cat:"通用",q:"一段关系里总是自己主动、对方冷淡，网友说：",options:["单方面热脸","双向奔赴","贴贴上岸","互相拿捏"],ans:0,exp:"单方面热脸指只有一方主动付出。"},
+  {diff:"hell",cat:"通用",q:"把网络上的梗当真、对号入座到现实，网友调侃：",options:["梗玩上头","人间清醒","佛系随缘","做功课"],ans:0,exp:"梗玩上头指把网络玩笑过度当真。"},
+  {diff:"hell",cat:"通用",q:"一个梗被不同圈子二次改编、衍生出多个版本，属于：",options:["梗衍生","梗下线","梗绝版","梗限流"],ans:0,exp:"梗衍生指原梗被改编出多种变体。"},
+  {diff:"hell",cat:"通用",q:"老梗被新人当成新梗刷出来，老人感慨：",options:["又文艺复兴了","梗已绝版","彻底下线","烂尾完结"],ans:0,exp:"文艺复兴指老梗重新翻红被新人玩。"},
+  {diff:"easy",cat:"土味抽象",q:"视频里大叔配BGM自信走秀、土味拉满，这种风格叫：",options:["土味自信","高级冷艳","学术严谨","官方正式"],ans:0,exp:"土味自信是浮夸接地气的整活风格。"},
+  {diff:"easy",cat:"土味抽象",q:"直播间主播热情喊“家人们冲”，“家人们”是对观众的：",options:["亲昵称呼","正式职称","法律称谓","竞争对手"],ans:0,exp:"家人们是主播对粉丝观众的亲昵称呼。"},
+  {diff:"easy",cat:"土味抽象",q:"“谁懂啊家人们”后面通常接的是：",options:["吐槽/感叹的小事","正式合同条款","学术论文摘要","新闻通稿标题"],ans:0,exp:"这是短视频吐槽感叹的开场口头禅。"},
+  {diff:"easy",cat:"土味抽象",q:"视频里人物原地比心、飞吻表达喜爱，属于：",options:["卖萌整活","严肃播报","商务谈判","课堂提问"],ans:0,exp:"比心飞吻是卖萌表达喜爱的网感动作。"},
+  {diff:"easy",cat:"土味抽象",q:"一句话说得很夸张、像喊麦一样有气势，属于：",options:["喊麦整活","低声细语","新闻联播","学术报告"],ans:0,exp:"喊麦指节奏强烈、大声念词的表演形式。"},
+  {diff:"mid",cat:"土味抽象",q:"博主用夸张滤镜和特效把自己P得变形，属于：",options:["抽象特效","纪实摄影","证件照","官方宣传图"],ans:0,exp:"夸张变形特效是抽象整活的常见手法。"},
+  {diff:"mid",cat:"土味抽象",q:"评论区有人发“退退退”，他最想表达的是：",options:["拒绝、驱赶晦气","欢迎到来","加油助威","认同赞同"],ans:0,exp:"退退退用于表达拒绝、把晦气赶走。"},
+  {diff:"mid",cat:"土味抽象",q:"视频内容毫无逻辑、天马行空，观众看完表示：",options:["看不懂但大受震撼","完全理解","深受教育","平静离开"],ans:0,exp:"看不懂但震撼是抽象内容的常见反应。"},
+  {diff:"mid",cat:"土味抽象",q:"把日常小事拍成狗血连续剧、强行制造冲突，属于：",options:["狗血整活","纪录片","新闻调查","科普讲解"],ans:0,exp:"狗血指情节夸张离谱、强行冲突。"},
+  {diff:"hell",cat:"土味抽象",q:"“我是云南的”这类魔性方言自我介绍属于哪类梗：",options:["方言魔性整活","商务推介","新闻采访","课堂朗诵"],ans:0,exp:"方言魔性自我介绍是抽象出圈梗。"},
+  {diff:"hell",cat:"土味抽象",q:"抽象视频里角色行为无厘头、不按常理出牌，观众弹幕常刷：",options:["这也能行","严谨合理","官方认证","学术正确"],ans:0,exp:"“这也能行”是对离谱操作的调侃弹幕。"},
+  {diff:"hell",cat:"土味抽象",q:"把多个热梗混剪拼接、密度极高，这种视频叫：",options:["梗合集","纪录片","广告片","教学课件"],ans:0,exp:"梗合集指集中收录多个网络梗的二创视频。"},
+  {diff:"mid",cat:"外网",q:"外网流行给事物贴“氛围感”标签，形容颜值/气质氛围好，叫：",options:["aesthetic","cringe","mid","feeding"],ans:0,exp:"aesthetic指审美氛围、风格气质。"},
+  {diff:"mid",cat:"外网",q:"外网形容某人穿搭很有品味、很潮，说他____很在线：",options:["drip","mid","cap","sus"],ans:0,exp:"drip形容穿搭潮、行头很酷。"},
+  {diff:"mid",cat:"外网",q:"外网把好友聚餐、分享食物的轻松日常叫：",options:["vibe","beef","cypher","trap"],ans:0,exp:"vibe指轻松惬意的氛围。"},
+  {diff:"mid",cat:"外网",q:"外网视频里主角突然对着镜头打破第四面墙说话，叫：",options:["breaking the fourth wall","gaslight","hustle","rizz"],ans:0,exp:"打破第四面墙指角色直接对观众说话。"},
+  {diff:"mid",cat:"外网",q:"外网形容一段关系结束后快速放下、向前看，叫：",options:["moving on","stuck","cringe","cap"],ans:0,exp:"moving on指放下过去、继续向前。"},
+  {diff:"hell",cat:"外网",q:"外网经典黑白对比梗图里，左边普通宅男右边肌肉猛男，标签常是：",options:["Virgin vs Chad","main vs extra","hero vs boss","NPC vs player"],ans:0,exp:"Virgin vs Chad是经典对比梗图模板。"},
+  {diff:"hell",cat:"外网",q:"外网“sigma male”视频常配低沉配乐、表现独狼冷酷，属于哪类内容：",options:["男性力量梗","育儿教程","美食探店","新闻播报"],ans:0,exp:"sigma male是外网男性气质类抽象梗。"},
+  {diff:"hell",cat:"外网",q:"外网“Ohio”梗里，地名被用来代指：",options:["离谱奇怪之地","繁华大都市","旅游胜地","学术名城"],ans:0,exp:"Only in Ohio把Ohio代指离谱怪事发生地。"},
+  {diff:"hell",cat:"外网",q:"外网“skibidi”梗的核心是哪类抽象元素：",options:["马桶人怪物","可爱猫咪","美食料理","自然风光"],ans:0,exp:"skibidi toilet以马桶人怪物对战为核心。"},
+  {diff:"hell",cat:"外网",q:"外网游戏梗“gg ez”里，ez的意思是：",options:["easy 赢得轻松","exit 退出","equal 平局","eager 期待"],ans:0,exp:"ez=easy，嘲讽赢得很轻松。"},
+  {diff:"mid",cat:"说唱",q:"说唱歌曲里段落之间过渡、简短过门部分，叫：",options:["interlude","verse","hook","beat"],ans:0,exp:"interlude是段落间的过渡间奏。"},
+  {diff:"mid",cat:"说唱",q:"歌曲结尾的收束段落，叫：",options:["outro","intro","hook","verse"],ans:0,exp:"outro是结尾收尾段落；intro是开场。"},
+  {diff:"mid",cat:"说唱",q:"歌曲开头引入的前奏段落，叫：",options:["intro","outro","hook","bridge"],ans:0,exp:"intro是开场前奏。"},
+  {diff:"mid",cat:"说唱",q:"说唱里用于展示硬核歌词、互相较量的赛场，叫：",options:["battle舞台","录音棚","发布会","签售会"],ans:0,exp:"battle舞台是说唱一对一较量场合。"},
+  {diff:"hell",cat:"说唱",q:"老派硬核、采样老歌的经典说唱风格，叫：",options:["old school","trap","acappella","cypher"],ans:0,exp:"old school指早期经典老派说唱风格。"},
+  {diff:"hell",cat:"说唱",q:"两人说唱互相较劲、风格对立，被形容为有：",options:["beef恩怨","peace友爱","hook共鸣","flow合拍"],ans:0,exp:"beef指说唱圈的恩怨对立。"},
+  {diff:"hell",cat:"说唱",q:"说唱歌手即兴脱口而出的金句，现场观众反应热烈，叫：",options:["freestyle爆点","后期修音","广告口播","念白旁白"],ans:0,exp:"freestyle爆点指即兴说中的高光句子。"},
+  {diff:"mid",cat:"三坑消费",q:"裙子/服饰按尺码表选码、对照身材数据下单，三坑圈叫：",options:["对照尺码","盲买","捡漏","打包"],ans:0,exp:"对照尺码指按数据选合适码数。"},
+  {diff:"mid",cat:"三坑消费",q:"商品全新、带吊牌未使用，二手交易标注：",options:["全新吊牌","穿过二手","瑕疵处理","样衣"],ans:0,exp:"全新吊牌指未使用、吊牌仍在。"},
+  {diff:"mid",cat:"三坑消费",q:"收到商品后拍实物图分享给别人参考，叫：",options:["返图","官图","预售","掉落"],ans:0,exp:"返图指买家实拍的实物照片。"},
+  {diff:"hell",cat:"三坑消费",q:"热门款二手溢价严重、价格被炒高，三坑圈叫：",options:["炒价","白菜","现货掉落","工期完结"],ans:0,exp:"炒价指二手价格被哄抬走高。"},
+  {diff:"hell",cat:"三坑消费",q:"商品刚发布就被预定一空、抢不到，叫：",options:["秒没","现货充足","白菜价","再贩失败"],ans:0,exp:"秒没指上架即被抢光。"},
+  {diff:"hell",cat:"三坑消费",q:"买家收到后不满意、按规则退回卖家，叫：",options:["退货","出掉","收闲置","拼单"],ans:0,exp:"退货指把商品退回卖家。"},
+  {diff:"mid",cat:"美妆",q:"底妆前先涂抹的滋润打底步骤，叫：",options:["妆前打底","定妆","卸妆","刷酸"],ans:0,exp:"妆前打底指上粉底前的润肤步骤。"},
+  {diff:"mid",cat:"美妆",q:"最后一步固定妆容、防止脱妆，叫：",options:["定妆","卸妆","打底","刷酸"],ans:0,exp:"定妆用散粉等固定妆容、减少脱妆。"},
+  {diff:"mid",cat:"美妆",q:"卸掉脸上妆容的清洁步骤，叫：",options:["卸妆","定妆","打底","遮瑕"],ans:0,exp:"卸妆指清洁去除面部彩妆。"},
+  {diff:"mid",cat:"美妆",q:"遮盖痘印、黑眼圈的局部彩妆产品，叫：",options:["遮瑕","散粉","口红","腮红"],ans:0,exp:"遮瑕用于局部遮盖瑕疵。"},
+  {diff:"hell",cat:"美妆",q:"不同肤色适配不同色号粉底，选色要对照：",options:["肤色试色","流行色号","包装颜色","博主推荐"],ans:0,exp:"选粉底需对照自身肤色试色。"},
+  {diff:"hell",cat:"美妆",q:"护肤步骤里先水后乳、分层吸收的顺序，叫：",options:["护肤流程","过度叠加","猛药堆叠","频繁清洁"],ans:0,exp:"护肤流程指按顺序涂抹水、乳、精华。"},
+  {diff:"hell",cat:"美妆",q:"用化妆刷/粉扑把粉底拍开均匀上脸，叫：",options:["拍开","搓泥","卡粉","假面"],ans:0,exp:"拍开指把底妆均匀拍敷贴合。"},
+  {diff:"mid",cat:"萌宠",q:"狗狗兴奋时转圈追自己尾巴玩，属于：",options:["自娱自乐","拆家","哈气戒备","生病萎靡"],ans:0,exp:"追尾巴是狗狗兴奋自娱的行为。"},
+  {diff:"mid",cat:"萌宠",q:"猫咪把主人当靠山、贴着腿蹭来蹭去，说明它：",options:["亲近信任","生气示威","准备攻击","想离家出走"],ans:0,exp:"蹭人是猫咪亲近信任的表现。"},
+  {diff:"hell",cat:"萌宠",q:"网上给宠物起拟人化名字、当孩子养，这种心态叫：",options:["毛孩子心态","佛系养猫","工具人心态","路人围观"],ans:0,exp:"把宠物当毛孩子是常见养宠心态。"},
+  {diff:"hell",cat:"萌宠",q:"宠物做错事被抓包后露出委屈躲闪表情，主人评价：",options:["装可怜","很嚣张","很淡定","要离家"],ans:0,exp:"委屈躲闪表情常被解读为装可怜。"},
+  {diff:"mid",cat:"饭圈",q:"偶像生日时粉丝集资送应援礼物/大屏广告，叫：",options:["应援","塌房","回踩","爬墙"],ans:0,exp:"应援指粉丝为偶像造势支持。"},
+  {diff:"mid",cat:"饭圈",q:"粉丝自发制作偶像图文、视频内容，叫：",options:["产粮","回踩","塌房","闭麦"],ans:0,exp:"产粮指粉丝创作同人/宣传内容。"},
+  {diff:"mid",cat:"饭圈",q:"粉丝群体之间因偶像产生争执骂战，叫：",options:["撕逼","营业","固粉","打榜"],ans:0,exp:"撕逼指粉丝群体间互相对骂争执。"},
+  {diff:"hell",cat:"饭圈",q:"把自家偶像夸到极致、不许别人说半句不好，这种粉丝叫：",options:["极端粉","路人粉","双担","散粉"],ans:0,exp:"极端粉指盲目护主、不容批评。"},
+  {diff:"hell",cat:"饭圈",q:"脱粉后保留好感、不再狂热但也不黑，叫：",options:["佛系粉","死忠粉","披皮黑","毒唯"],ans:0,exp:"佛系粉指淡然追偶像、不狂热。"},
+  {diff:"hell",cat:"饭圈",q:"粉丝组织统一购买专辑/周边冲销量，叫：",options:["集资冲销量","个人收藏","路人围观","二手出掉"],ans:0,exp:"集资冲销量指粉丝凑钱买数据。"},
+  {diff:"mid",cat:"影视综艺",q:"两个人物之间的情感线发展，观众追着看叫：",options:["感情线","主线任务","日常签到","副本攻略"],ans:0,exp:"感情线指剧中人物的情感发展脉络。"},
+  {diff:"mid",cat:"影视综艺",q:"故事最精彩、矛盾集中爆发的高潮部分，叫：",options:["高潮","铺垫","尾声","花絮"],ans:0,exp:"高潮是剧情矛盾最集中的顶点。"},
+  {diff:"hell",cat:"影视综艺",q:"为续集埋伏笔、留悬念的开放式结尾，缩写：",options:["OE","BE","HE","OOC"],ans:0,exp:"OE=Open Ending开放式结局。"},
+  {diff:"hell",cat:"影视综艺",q:"基于原作设定衍生的平行世界同人设定，缩写：",options:["AU","BE","HE","CP"],ans:0,exp:"AU=Alternative Universe平行世界设定。"},
+  {diff:"hell",cat:"第五人格",q:"求生者被挂上狂欢之椅后挣扎倒计时等待救援，叫：",options:["上椅","压机","地窖逃脱","四抓"],ans:0,exp:"上椅指被监管挂上椅子等待救援。"},
+  {diff:"hell",cat:"第五人格",q:"求生者队友及时赶到把人从椅子上救下，叫：",options:["救人","压机","守椅","投降"],ans:0,exp:"救人指从狂欢之椅上救下队友。"},
+  {diff:"hell",cat:"第五人格",q:"监管者在地图上巡逻追击求生者，叫：",options:["遛鬼追击","压机开门","地窖逃生","抱团修机"],ans:0,exp:"追击指监管者寻找并追捕求生者。"},
+  {diff:"hell",cat:"火影",q:"火影手游里积攒能量、用于释放替身技能，叫：",options:["攒替身豆","回城复活","挂机下线","白给送头"],ans:0,exp:"替身豆是火影手游替身技能的能量资源。"},
+  {diff:"hell",cat:"火影",q:"被对手连招攻击时用替身脱离战场，叫：",options:["替身脱身","平推倒地","挂机投降","攒豆发呆"],ans:0,exp:"替身指用替身技能脱离连击压制。"},
+  {diff:"mid",cat:"电竞",q:"对局里经济/装备落后对手一大截，叫：",options:["经济落后","装备碾压","满配起飞","碾压对局"],ans:0,exp:"经济落后指资源装备处于劣势。"},
+  {diff:"mid",cat:"电竞",q:"装备成型后实力反超对手、局势逆转，叫：",options:["装备成型","白给掉线","挂机OB","前期崩盘"],ans:0,exp:"装备成型指积累足够装备、实力提升。"},
+  {diff:"hell",cat:"电竞",q:"职业比赛里队伍临时换选手替补上场，叫：",options:["替补登场","挂机下线","观众OB","赛后复盘"],ans:0,exp:"替补登场指轮换选手上场比赛。"},
+  {diff:"hell",cat:"电竞",q:"比赛双方实力接近、比分交替上升，解说形容为：",options:["势均力敌","一边倒碾压","白给送头","养生摸鱼"],ans:0,exp:"势均力敌指双方实力相当。"},
+  {diff:"easy",cat:"通用",q:"刷到一条内容，他反复看了三遍还是没看懂，属于：",options:["没get到","轻松拿捏","一眼通关","稳赢上岸"],ans:0,exp:"没get到指没理解、没接住梗点。"},
+  {diff:"easy",cat:"通用",q:"朋友一句话点醒了他、瞬间想通，网友说：",options:["被点醒了","破防自闭","躺平摆烂","卡bug掉线"],ans:0,exp:"被点醒指经别人提醒后豁然开朗。"},
+  {diff:"easy",cat:"通用",q:"他发的内容没人点赞、冷冷清清，自嘲是：",options:["小透明","网红大佬","流量王者","气氛担当"],ans:0,exp:"小透明指没存在感、没人关注。"},
+  {diff:"easy",cat:"通用",q:"视频突然爆火、涨粉飞快，账号属于：",options:["涨粉起飞","原地躺平","限流下沉","安静下线"],ans:0,exp:"涨粉起飞指粉丝数快速上涨。"},
+  {diff:"easy",cat:"通用",q:"评论区有人催更、等着更新，作者看到说：",options:["收到催更","准备弃坑","彻底烂尾","下线躺平"],ans:0,exp:"催更指粉丝催促更新内容。"},
+  {diff:"easy",cat:"通用",q:"作者断更好久没露面，粉丝留言：",options:["你还好吗","已经封神","持续爆更","上热门了"],ans:0,exp:"断更后粉丝会询问作者近况。"},
+  {diff:"easy",cat:"通用",q:"看到喜欢的博主更新，他第一时间冲去点赞评论，属于：",options:["火速捧场","潜水围观","已读不回","挂机下线"],ans:0,exp:"火速捧场指第一时间支持互动。"},
+  {diff:"easy",cat:"通用",q:"内容质量忽高忽低，粉丝评价更新：",options:["时好时坏","一直封神","彻底烂尾","稳定碾压"],ans:0,exp:"时好时坏指质量起伏不稳定。"},
+  {diff:"easy",cat:"通用",q:"他把不开心的事发上网求安慰，属于：",options:["情绪宣泄","正式汇报","学术总结","商务谈判"],ans:0,exp:"情绪宣泄指把情绪发泄到网上。"},
+  {diff:"easy",cat:"通用",q:"网友暖心留言安慰，让他感觉被：",options:["治愈到","致郁了","破防骂","下线了"],ans:0,exp:"被治愈指获得情绪安抚。"},
+  {diff:"easy",cat:"通用",q:"两个人聊天节奏合拍、接梗飞快，属于：",options:["聊得来","杠精对线","已读不回","冷场翻车"],ans:0,exp:"聊得来指沟通顺畅、合拍。"},
+  {diff:"easy",cat:"通用",q:"对方话题接不上、越聊越尴尬，属于：",options:["聊崩了","双向奔赴","贴贴升温","秒回在线"],ans:0,exp:"聊崩了指聊天陷入尴尬冷淡。"},
+  {diff:"easy",cat:"通用",q:"网上认识的网友约线下见面，这种行为叫：",options:["面基","塌房","爬墙","回踩"],ans:0,exp:"面基指网友线下见面。"},
+  {diff:"easy",cat:"通用",q:"线上聊得很好，面基后发现和想象不符，属于：",options:["见光翻车","双向奔赴","贴贴上岸","拿捏全场"],ans:0,exp:"见光翻车指线下见面后印象落差大。"},
+  {diff:"easy",cat:"通用",q:"他总在网上吐槽工作、抱怨老板，属于：",options:["吐槽上班","炫耀升职","正式述职","商务汇报"],ans:0,exp:"吐槽上班是打工人常见上网行为。"},
+  {diff:"easy",cat:"通用",q:"下班之后只想独处回血、不想社交，这种状态叫：",options:["充电回血","冲锋内卷","社交碾压","开黑连麦"],ans:0,exp:"充电回血指独处恢复精力。"},
+  {diff:"easy",cat:"通用",q:"周末彻底躺平、哪也不去，网友形容是：",options:["宅家躺平","出门社交","打卡探店","团建冲锋"],ans:0,exp:"宅家躺平指周末在家不出门。"},
+  {diff:"easy",cat:"通用",q:"跟风去网红店打卡拍照，属于：",options:["打卡探店","闭门躺平","正式调研","学术考察"],ans:0,exp:"打卡探店指去网红地点拍照体验。"},
+  {diff:"easy",cat:"通用",q:"排队两小时只为拍一张网红照，网友调侃：",options:["为拍照牺牲","理性消费","轻松上岸","拿捏全场"],ans:0,exp:"排长队打卡是网红探店常见现象。"},
+  {diff:"easy",cat:"通用",q:"踩雷买到难吃的店，他发视频吐槽：",options:["避雷提醒","疯狂安利","封神推荐","种草下单"],ans:0,exp:"避雷指提醒别人别踩同款坑。"},
+  {diff:"mid",cat:"通用",q:"在评论区被陌生人暖心回复、意外感动，属于：",options:["陌生人善意","对线互撕","限流折叠","挂机潜水"],ans:0,exp:"陌生人善意指网络上偶遇的温暖。"},
+  {diff:"mid",cat:"通用",q:"被网暴、私信辱骂导致心情低落，属于：",options:["被网暴","正常安利","友好互动","围观吃瓜"],ans:0,exp:"网暴指遭到网络围攻辱骂。"},
+  {diff:"mid",cat:"通用",q:"不参与争吵、直接拉黑屏蔽让对方闭嘴，叫：",options:["拉黑屏蔽","对线到底","开喷回怼","刷屏附和"],ans:0,exp:"拉黑屏蔽指切断和对方的联系。"},
+  {diff:"mid",cat:"通用",q:"把不感兴趣的内容点不感兴趣、减少推荐，叫：",options:["减少推荐","置顶关注","疯狂安利","打榜刷屏"],ans:0,exp:"减少推荐指算法降低同类内容推送。"},
+  {diff:"mid",cat:"通用",q:"关注太多账号刷不过来，他开始清理关注列表，叫：",options:["清理关注","疯狂涨粉","打榜控评","置顶安利"],ans:0,exp:"清理关注指取关不再看的账号。"},
+  {diff:"mid",cat:"通用",q:"把喜欢的内容收藏起来以后再看，叫：",options:["收藏夹吃灰","当场遗忘","下线删除","白给送掉"],ans:0,exp:"收藏夹吃灰指收藏后再也没打开。"},
+  {diff:"mid",cat:"通用",q:"刷到干货内容先收藏、标记以后学习，叫：",options:["马住","下线","翻车","白给"],ans:0,exp:"马住=mark，标记收藏以后再看。"},
+  {diff:"mid",cat:"通用",q:"收藏了一堆干货却从没打开过，网友自嘲：",options:["收藏等于学会","认真学习","通关上岸","拿捏全场"],ans:0,exp:"收藏等于学会是自嘲囤而不学。"},
+  {diff:"mid",cat:"通用",q:"把视频里的金句截图保存下来，属于：",options:["截图表存","下线删除","挂机潜水","白给送头"],ans:0,exp:"截图保存喜欢的内容是常见行为。"},
+  {diff:"mid",cat:"通用",q:"做攻略前先翻大量测评对比，属于：",options:["做功课","冲动下单","跟风冲单","闭眼入坑"],ans:0,exp:"做功课指消费前先研究对比信息。"},
+  {diff:"hell",cat:"通用",q:"被网上观点带节奏、不辨真伪就转发，属于：",options:["被带节奏","独立判断","理性吃瓜","人间清醒"],ans:0,exp:"被带节奏指跟风跟着舆论走。"},
+  {diff:"hell",cat:"通用",q:"事件多次反转后才发现一开始错怪了人，属于：",options:["反转打脸","稳赢上岸","拿捏全场","封神预判"],ans:0,exp:"反转打脸指先前判断被事实推翻。"},
+  {diff:"hell",cat:"通用",q:"对网络热点保持独立判断、不盲目站队，网友称：",options:["理性吃瓜","跟风冲榜","被带节奏","控评刷榜"],ans:0,exp:"理性吃瓜指不站队、客观围观。"},
+  {diff:"hell",cat:"通用",q:"把个人生活片段剪辑成精致人设对外展示，属于：",options:["经营人设","纪实记录","官方档案","学术自传"],ans:0,exp:"经营人设指刻意塑造对外形象。"},
+  {diff:"hell",cat:"通用",q:"人设和真实本人差距太大、被扒出后翻车，叫：",options:["人设崩塌","低调上岸","稳赢碾压","粉丝固粉"],ans:0,exp:"人设崩塌指对外形象和现实不符翻车。"},
+  {diff:"hell",cat:"通用",q:"长期维持完美形象很累、想卸下伪装，这种心态叫：",options:["人设疲惫","上头狂欢","躺赢碾压","封神状态"],ans:0,exp:"人设疲惫指维持对外形象感到累。"},
+  {diff:"hell",cat:"通用",q:"在网上随口说的话被截图传播、断章取义，属于：",options:["被断章取义","正常安利","友好互动","理性讨论"],ans:0,exp:"断章取义指截取片段歪曲原意。"},
+  {diff:"hell",cat:"通用",q:"为避免被截图误解、发言前反复斟酌，叫：",options:["谨言慎行","口无遮拦","随意对线","刷屏发言"],ans:0,exp:"谨言慎行指发言小心、避免被抓把柄。"},
+  {diff:"mid",cat:"童年游戏",q:"游戏里血量缓慢自动恢复，叫：",options:["回血","掉血","秒杀","掉线"],ans:0,exp:"回血指生命值恢复上涨。"},
+  {diff:"mid",cat:"童年游戏",q:"血量见底、濒死状态，游戏里叫：",options:["残血濒死","满血满蓝","状态起飞","通关碾压"],ans:0,exp:"残血濒死指生命极低、快倒下。"},
+  {diff:"mid",cat:"童年游戏",q:"技能/道具使用后需要等待恢复才能再用，叫：",options:["冷却转好","满血复活","buff叠满","通关下线"],ans:0,exp:"冷却转好指技能恢复可再次使用。"},
+  {diff:"mid",cat:"童年游戏",q:"游戏内可存放道具装备的背包空间，叫：",options:["背包容量","水晶基地","地图副本","战绩面板"],ans:0,exp:"背包容量指可携带道具的数量上限。"},
+  {diff:"mid",cat:"童年游戏",q:"把没用的道具卖掉换取游戏货币，叫：",options:["变卖道具","囤积装备","开箱抽卡","组队副本"],ans:0,exp:"变卖道具指出售闲置换资源。"},
+  {diff:"hell",cat:"童年游戏",q:"连续登录游戏领取累积奖励，叫：",options:["连续登录奖励","中途下线","挂机离线","单局随机"],ans:0,exp:"连续登录奖励按签到天数累积发放。"},
+  {diff:"hell",cat:"童年游戏",q:"游戏更新后新增加的角色/地图内容，叫：",options:["版本更新内容","离线挂机","日常任务","背包整理"],ans:0,exp:"版本更新指游戏迭代新增内容。"},
+  {diff:"hell",cat:"童年游戏",q:"游戏里隐藏关卡、普通玩家不易发现的内容，叫：",options:["隐藏彩蛋","新手教程","主线剧情","日常签到"],ans:0,exp:"隐藏彩蛋指游戏内隐秘内容。"},
+  {diff:"hell",cat:"童年游戏",q:"利用操作技巧打出超出常规的精彩表现，叫：",options:["操作秀翻","白给掉线","挂机OB","混子躺赢"],ans:0,exp:"操作秀翻指技巧打出亮眼表现。"},
+  {diff:"mid",cat:"电竞",q:"对局里全队集合进攻对方基地推掉水晶，叫：",options:["一波推进","回城farm","挂机OB","各自带线"],ans:0,exp:"一波推进指集合速推基地结束对局。"},
+  {diff:"mid",cat:"电竞",q:"分散带兵线、牵制对手不集合，叫：",options:["分带牵制","抱团推进","集体回城","全员挂机"],ans:0,exp:"分带牵制指分开带线拉扯对手。"},
+  {diff:"mid",cat:"电竞",q:"比赛暂停、双方休息调整后继续，叫：",options:["暂停复盘","直接投降","挂机下线","赛后采访"],ans:0,exp:"暂停指比赛中途停止、调整后继续。"},
+  {diff:"hell",cat:"电竞",q:"选手比赛时心态急躁、操作变形，解说形容心态：",options:["炸了","很稳","火热碾压","从容翻盘"],ans:0,exp:"心态炸了指情绪失控、操作变形。"},
+  {diff:"hell",cat:"电竞",q:"大比分落后后稳住心态、连扳多局取胜，叫：",options:["让二追三","一路白给","挂机下线","速通投降"],ans:0,exp:"让二追三指落后两局后连胜翻盘。"},
+  {diff:"hell",cat:"电竞",q:"比赛进入关键局、双方争夺赛点，解说称之为：",options:["决胜局","养生局","热身局","挂机局"],ans:0,exp:"决胜局指决定胜负的关键一局。"},
+  {diff:"mid",cat:"外网",q:"外网形容某人说话幽默搞笑、很会逗乐，说他很：",options:["funny","cringe","mid","sus"],ans:0,exp:"funny指幽默好笑。"},
+  {diff:"mid",cat:"外网",q:"外网把很火的人/事物称为全网焦点，叫：",options:["trending","mid","cap","offline"],ans:0,exp:"trending指正在流行、登上趋势榜。"},
+  {diff:"hell",cat:"外网",q:"外网“rizz”里魅力拉满、轻松拿捏对方的人，被称为：",options:["rizz god","NPC","feeders","cringe lord"],ans:0,exp:"rizz god形容撩人魅力极强。"},
+  {diff:"hell",cat:"外网",q:"外网游戏里队友之间配合失误、互相甩锅，叫：",options:["blame game","clutch play","teamwork","clean sweep"],ans:0,exp:"blame game指失败后互相指责甩锅。"},
+  {diff:"mid",cat:"说唱",q:"说唱里押韵句子之间的衔接流畅度，叫：",options:["韵脚衔接","beat drop","stage light","fan sign"],ans:0,exp:"韵脚衔接指歌词押韵与节奏的连贯。"},
+  {diff:"hell",cat:"说唱",q:"在说唱作品里客串献声的嘉宾歌手，标注为：",options:["feat.嘉宾","outro间奏","interlude","producer"],ans:0,exp:"feat.嘉宾即合作客串演唱者。"},
+  {diff:"mid",cat:"三坑消费",q:"服饰版型显瘦、修饰身材线条，三坑圈评价版型：",options:["显瘦显高","显胖臃肿","尺码偏小","瑕疵明显"],ans:0,exp:"显瘦显高是对版型身材效果的好评。"},
+  {diff:"hell",cat:"三坑消费",q:"同款商品不同批次做工有差异，三坑圈叫：",options:["批次色差","再贩绝版","现货掉落","打包捆绑"],ans:0,exp:"批次差异指不同批次做工/颜色有差别。"},
+  {diff:"mid",cat:"美妆",q:"妆面出油脱妆、需要中途补妆，叫：",options:["脱妆补妆","定妆完成","卸妆清洁","刷酸焕肤"],ans:0,exp:"脱妆指妆容花掉、需要补妆。"},
+  {diff:"hell",cat:"美妆",q:"不同季节肤质变化需要调整护肤方案，叫：",options:["换季护肤","猛药叠加","过度清洁","频繁去角质"],ans:0,exp:"换季护肤指随季节调整护肤重点。"},
+  {diff:"mid",cat:"饭圈",q:"粉丝在超话社区发帖互动、维护热度，叫：",options:["超话签到","私下挂机","离线潜水","二手出物"],ans:0,exp:"超话签到指粉丝社区打卡维护热度。"},
+  {diff:"hell",cat:"饭圈",q:"偶像参加节目获得曝光、提升国民度，饭圈称之为：",options:["出圈涨粉","塌房糊掉","回踩脱粉","爬墙换人"],ans:0,exp:"出圈涨粉指突破圈层吸引新粉。"},
+  {diff:"mid",cat:"影视综艺",q:"综艺里嘉宾完成挑战任务闯关获胜，叫：",options:["挑战成功","剧情杀","BE结局","OOC崩塌"],ans:0,exp:"挑战成功指完成综艺关卡任务。"},
+  {diff:"hell",cat:"影视综艺",q:"视频剪辑配上热血BGM营造燃向氛围，叫：",options:["燃向剪辑","纪录片旁白","新闻播报","广告口播"],ans:0,exp:"燃向剪辑指搭配热血音乐的二创。"},
+  {diff:"easy",cat:"通用",q:"早上起不来、闹钟响了又睡过去，属于：",options:["起床困难","按时上岸","自律打卡","冲锋早起"],ans:0,exp:"起床困难指早晨赖床起不来。"},
+  {diff:"easy",cat:"通用",q:"熬夜刷手机到凌晨，第二天顶着黑眼圈，属于：",options:["熬夜伤身","早睡早起","养生打卡","作息规律"],ans:0,exp:"熬夜伤身指晚睡影响精神状态。"},
+  {diff:"easy",cat:"通用",q:"说好要学习结果一直在刷手机，属于：",options:["自制力掉线","自律起飞","通关上岸","拿捏全场"],ans:0,exp:"自制力掉线指管不住自己、拖延。"},
+  {diff:"easy",cat:"通用",q:"立下减肥flag却忍不住点外卖，属于：",options:["flag又倒了","稳操胜券","坚持上岸","碾压成功"],ans:0,exp:"flag倒了指立下的目标没坚持住。"},
+  {diff:"easy",cat:"通用",q:"外卖下单后焦急等待、一直看骑手进度，属于：",options:["等饭煎熬","准时上岸","轻松拿捏","通关碾压"],ans:0,exp:"等饭煎熬是等外卖时的常见状态。"},
+  {diff:"easy",cat:"通用",q:"刷到种草视频立刻下单冲动消费，属于：",options:["被安利下单","理性蹲价","做功课对比","退货退款"],ans:0,exp:"被安利下单指看了推荐直接购买。"},
+  {diff:"easy",cat:"通用",q:"拆快递时的期待和快乐，网友形容是：",options:["拆箱快乐","退货沮丧","翻车后悔","下线躺平"],ans:0,exp:"拆箱快乐指拆包裹时的满足感。"},
+  {diff:"easy",cat:"通用",q:"收到货发现和宣传图差距很大，属于：",options:["买家秀翻车","完美上岸","种草成功","封神推荐"],ans:0,exp:"买家秀翻车指实物和宣传不符。"},
+  {diff:"easy",cat:"通用",q:"网购翻车后申请退款退货，属于：",options:["售后维权","收藏夹吃灰","打榜控评","面基奔现"],ans:0,exp:"售后维权指购买后退换货处理。"},
+  {diff:"easy",cat:"通用",q:"优惠券快过期却凑不出想买的东西，属于：",options:["券要浪费","轻松薅羊毛","理性囤货","拼单成功"],ans:0,exp:"券要浪费指优惠没用上就过期。"},
+  {diff:"easy",cat:"通用",q:"为了满减硬凑不需要的商品，属于：",options:["为满减凑单","理性消费","做功课对比","二手出掉"],ans:0,exp:"凑单满减是为优惠多买商品。"},
+  {diff:"easy",cat:"通用",q:"看到评论区都说好用才敢下单，属于：",options:["看口碑跟风","闭眼白给","冲动翻车","退货退款"],ans:0,exp:"看口碑跟风指参考评价再购买。"},
+  {diff:"easy",cat:"通用",q:"群里抢红包手气最佳，他得意地说：",options:["欧皇附体","非酋翻车","白给下线","躺平摆烂"],ans:0,exp:"欧皇附体指手气好、运气爆棚。"},
+  {diff:"easy",cat:"通用",q:"抢红包总是最少、次次垫底，自嘲是：",options:["非酋本酋","欧皇降临","手气碾压","上岸成功"],ans:0,exp:"非酋本酋自嘲运气一直差。"},
+  {diff:"easy",cat:"通用",q:"转发锦鲤求好运、许愿心想事成，属于：",options:["玄学许愿","理性分析","数据调研","正式签约"],ans:0,exp:"玄学许愿指转发求好运的网络行为。"},
+  {diff:"easy",cat:"通用",q:"愿望真的实现了，他回来还愿、转发感谢，属于：",options:["回来还愿","躺平下线","退群拉黑","闭麦潜水"],ans:0,exp:"还愿指愿望实现后回来感谢。"},
+  {diff:"mid",cat:"通用",q:"事情拖到最后一刻才开始做，属于：",options:["拖延症","自律冲刺","提前上岸","从容拿捏"],ans:0,exp:"拖延症指把事压到最后才做。"},
+  {diff:"mid",cat:"通用",q:"计划列了一堆却一条都没执行，属于：",options:["计划落空","稳赢通关","拿捏全场","持续起飞"],ans:0,exp:"计划落空指规划的事没落实。"},
+  {diff:"mid",cat:"通用",q:"被deadline逼到极限、通宵赶工，属于：",options:["截止日期前爆发","提前躺平","轻松上岸","从容拿捏"],ans:0,exp:"deadline爆发指最后关头赶工。"},
+  {diff:"mid",cat:"通用",q:"做完一件事累到不想说话，只想瘫着，属于：",options:["精力耗尽","精力充沛","冲锋内卷","开黑连麦"],ans:0,exp:"精力耗尽指疲惫到需要休息。"},
+  {diff:"mid",cat:"通用",q:"周末休息一天又变回打工人、心情低落，属于：",options:["假期综合征","持续起飞","上岸封神","拿捏全场"],ans:0,exp:"假期综合征指假期后难以进入状态。"},
+  {diff:"mid",cat:"通用",q:"节日结束要上班上学、心情沉重，网友戏称：",options:["节后综合征","放假狂喜","通宵狂欢","开黑连胜"],ans:0,exp:"节后综合征指假期后疲惫不想复工。"},
+  {diff:"mid",cat:"通用",q:"刷短视频一刷就是几小时、时间飞逝，属于：",options:["时间不知不觉溜走","准时上岸","自律打卡","计划通关"],ans:0,exp:"刷手机容易让人感觉时间过得飞快。"},
+  {diff:"mid",cat:"通用",q:"为了控制刷手机时间给自己设限时使用，属于：",options:["防沉迷自律","挂机下线","白给送头","躺平摆烂"],ans:0,exp:"防沉迷自律指主动控制上网时长。"},
+  {diff:"mid",cat:"通用",q:"看到别人的精致生活，对比自己产生落差焦虑，属于：",options:["比较焦虑","人间清醒","佛系躺平","轻松拿捏"],ans:0,exp:"比较焦虑指看别人生活产生落差感。"},
+  {diff:"mid",cat:"通用",q:"不跟别人攀比、按自己节奏生活，属于：",options:["自洽生活","内卷攀比","焦虑内耗","跟风冲榜"],ans:0,exp:"自洽指接纳自己、不盲目比较。"},
+  {diff:"mid",cat:"通用",q:"被生活压力压得喘不过气，想找个地方躲起来，属于：",options:["想逃遁","冲锋碾压","上岸封神","拿捏全场"],ans:0,exp:"想逃遁指压力大想暂时躲起来。"},
+  {diff:"mid",cat:"通用",q:"和老朋友久别重逢、聊起往事，属于：",options:["怀旧叙旧","对线互撕","已读不回","挂机潜水"],ans:0,exp:"怀旧叙旧指和故人回忆过去。"},
+  {diff:"hell",cat:"通用",q:"在社交中刻意维持人设、生怕说错话，属于：",options:["社交紧绷","松弛自然","佛系躺平","直球表达"],ans:0,exp:"社交紧绷指社交时紧张不自在。"},
+  {diff:"hell",cat:"通用",q:"相处时不用伪装、放松做自己，这种关系叫：",options:["松弛关系","讨好关系","对立关系","客套关系"],ans:0,exp:"松弛关系指相处自在、不用刻意。"},
+  {diff:"hell",cat:"通用",q:"别人随口的评价被他反复记在心里纠结，属于：",options:["过度在意评价","人间清醒","佛系随缘","直球洒脱"],ans:0,exp:"过度在意评价指容易被别人看法影响。"},
+  {diff:"hell",cat:"通用",q:"不再迎合他人、优先照顾自己感受，这种转变叫：",options:["自我觉醒","讨好他人","随波逐流","被带节奏"],ans:0,exp:"自我觉醒指开始重视自身感受。"},
+  {diff:"hell",cat:"通用",q:"对新事物保持好奇、愿意尝试接触，属于：",options:["开放心态","封闭躺平","抵触拒绝","挂机下线"],ans:0,exp:"开放心态指愿意接受新鲜事物。"},
+  {diff:"hell",cat:"通用",q:"拒绝新变化、固守旧习惯，网友形容为：",options:["固执守旧","开放拥抱","灵活变通","持续进化"],ans:0,exp:"固执守旧指不愿接受新事物。"},
+  {diff:"hell",cat:"通用",q:"在不同圈层之间都能聊得来、接得住梗，叫：",options:["跨圈接梗","圈内孤狼","潜水围观","离线挂机"],ans:0,exp:"跨圈接梗指能理解不同圈层的梗。"},
+  {diff:"hell",cat:"通用",q:"只活跃在自己固定圈子、对其他圈梗陌生，叫：",options:["圈内自嗨","全网冲浪","跨圈通行","梗王实锤"],ans:0,exp:"圈内自嗨指只在本圈层活动交流。"},
+  {diff:"easy",cat:"外网",q:"外网朋友见面打招呼说“sup”，意思相当于：",options:["最近咋样","再见晚安","对不起谢谢","收到请讲"],ans:0,exp:"sup=what's up，见面寒暄“咋样”。"},
+  {diff:"easy",cat:"外网",q:"外网回复赞同对方会说“facts”，意思是：",options:["说得是事实、没毛病","你胡说","太离谱了","再见拜拜"],ans:0,exp:"facts表示认同、说的是事实。"},
+  {diff:"easy",cat:"外网",q:"外网吐槽某内容拉胯，会说它很：",options:["mid","slay","W","based"],ans:0,exp:"mid形容平庸拉胯、不上不下。"},
+  {diff:"mid",cat:"外网",q:"外网形容某人突然走红、一夜成名，叫：",options:["blow up","cringe","mid offline","cap hard"],ans:0,exp:"blow up指突然爆火、涨粉走红。"},
+  {diff:"mid",cat:"外网",q:"外网形容内容被大量转发扩散、病毒传播，叫：",options:["viral","based","quiet","offline"],ans:0,exp:"viral指像病毒一样疯传。"},
+  {diff:"mid",cat:"外网",q:"外网对离谱新闻表示不敢置信，常说：",options:["no way","based","slay","W"],ans:0,exp:"no way表示震惊、不敢相信。"},
+  {diff:"mid",cat:"外网",q:"外网形容关系亲密、无话不谈的好友，叫：",options:["bestie","enemy","boss","NPC"],ans:0,exp:"bestie即最好的朋友、闺蜜好友。"},
+  {diff:"hell",cat:"外网",q:"外网“main character energy”里，主角出场自带的氛围感叫：",options:["main character vibe","NPC routine","side quest","debuff stack"],ans:0,exp:"主角氛围即主角自带的气场。"},
+  {diff:"hell",cat:"外网",q:"外网把每天重复机械生活的人比作游戏里的：",options:["NPC","boss hero","chad sigma","final winner"],ans:0,exp:"NPC比喻机械重复、没自主生活的人。"},
+  {diff:"hell",cat:"外网",q:"外网流行的自我提升、自律打卡内容，叫：",options:["self-improvement","quiet quitting","gaslighting","beef cycle"],ans:0,exp:"self-improvement指自我提升成长。"},
+  {diff:"easy",cat:"童年游戏",q:"游戏里角色升到新等级、能力提升，叫：",options:["升级","掉线","回城","白给"],ans:0,exp:"升级指等级和实力提升。"},
+  {diff:"easy",cat:"童年游戏",q:"游戏任务完成后领取奖励，叫：",options:["领奖励","放弃任务","下线挂机","卖掉装备"],ans:0,exp:"领奖励指完成任务后领取奖励。"},
+  {diff:"easy",cat:"童年游戏",q:"新手进入游戏后引导操作的教学环节，叫：",options:["新手教程","最终Boss","排位赛","成就墙"],ans:0,exp:"新手教程是入门引导环节。"},
+  {diff:"easy",cat:"童年游戏",q:"游戏里可选的不同角色/职业，叫：",options:["角色选择","战绩面板","背包仓库","对局回放"],ans:0,exp:"角色选择指挑选可玩角色。"},
+  {diff:"mid",cat:"童年游戏",q:"反复练习提高操作熟练度，游戏化说法：",options:["练手速","躺平摆烂","回城复活","挂机下线"],ans:0,exp:"练手速指反复练习操作反应。"},
+  {diff:"mid",cat:"童年游戏",q:"和朋友联机组队一起玩游戏，叫：",options:["联机开黑","单排挂机","离线OB","代练躺赢"],ans:0,exp:"联机开黑指多人一起组队游玩。"},
+  {diff:"mid",cat:"童年游戏",q:"游戏难度调高、挑战更强对手，叫：",options:["挑战困难","新手入门","休闲养生","躺赢通关"],ans:0,exp:"挑战困难指选择高难度模式。"},
+  {diff:"hell",cat:"童年游戏",q:"游戏内限时开启的特殊活动副本，叫：",options:["限时活动","日常签到","新手教程","离线挂机"],ans:0,exp:"限时活动指仅短期内开放的内容。"},
+  {diff:"hell",cat:"童年游戏",q:"收集齐一整套角色/道具达成的完成度，叫：",options:["收集度","战绩分","在线时长","背包空位"],ans:0,exp:"收集度指已收集内容占总量比例。"},
+  {diff:"hell",cat:"童年游戏",q:"游戏里付费购买的装饰性外观皮肤，叫：",options:["外观皮肤","任务装备","初始道具","隐藏彩蛋"],ans:0,exp:"皮肤指角色外观装饰道具。"},
+  {diff:"mid",cat:"电竞",q:"对局开始前选手调试设备、检查网络，叫：",options:["赛前准备","赛后复盘","挂机休息","观众OB"],ans:0,exp:"赛前准备指开局前调试状态设备。"},
+  {diff:"mid",cat:"电竞",q:"对局结束后双方选手握手致意，电竞礼仪叫：",options:["赛后握手","开麦互喷","挂机下线","分带牵制"],ans:0,exp:"赛后握手是比赛结束的礼仪。"},
+  {diff:"hell",cat:"电竞",q:"选手在比赛中临时发挥失常、手感冰凉，解说说他：",options:["手感冰凉","状态火热","碾压全场","carry带队"],ans:0,exp:"手感冰凉指状态低迷、发挥失常。"},
+  {diff:"hell",cat:"电竞",q:"队伍训练磨合、制定战术备战比赛，叫：",options:["赛前训练","赛后散场","挂机摸鱼","临时投降"],ans:0,exp:"赛前训练指比赛前磨合备战。"},
+  {diff:"mid",cat:"土味抽象",q:"视频博主用夸张语气喊出产品卖点叫卖，属于：",options:["带货整活","学术讲解","新闻播报","纪录片旁白"],ans:0,exp:"带货整活指夸张推销商品。"},
+  {diff:"mid",cat:"土味抽象",q:"评论区集体刷屏同一句魔性口号接龙，叫：",options:["口号复读","理性讨论","新闻跟评","学术留言"],ans:0,exp:"口号复读指集体重复刷同一句话。"},
+  {diff:"hell",cat:"土味抽象",q:"把严肃话题用离谱段子调侃解构，属于：",options:["玩梗解构","严肃讨论","官方声明","新闻通稿"],ans:0,exp:"玩梗解构指用玩笑方式消解严肃话题。"},
+  {diff:"hell",cat:"土味抽象",q:"抽象视频里反差极大的人设切换，被观众称为：",options:["人设反差","低调稳重","官方正经","学术严谨"],ans:0,exp:"人设反差指前后形象落差搞笑。"}
+];
+
+/* ==================== 段位 ==================== */
+const RANKS = [
+  {name:"2G冲浪手", min:0},
+  {name:"5G网民", min:4},
+  {name:"梗界达人", min:8},
+  {name:"冲浪王者", min:13},
+  {name:"梗之神", min:19}
+];
+
+/* ==================== 商城 / 装扮 / 圈层 配置 ==================== */
+const SHOP_TOOLS = [
+  {id:"exclude", name:"✂ 排除卡", desc:"对战中排除一个错误选项", price:50, icon:ASSET.cardExclude},
+  {id:"delay",   name:"⏳ 延时卡", desc:"对战中本局额外 +3 秒", price:50, icon:ASSET.cardDelay}
+];
+const FRAMES = [
+  {id:"default", name:"默认头像框", desc:"初始装扮", price:0, type:"buy", icon:ASSET.frame},
+  {id:"gold",    name:"金框梗王",   desc:"金币商城兑换", price:300, type:"buy", icon:ASSET.frame},
+  {id:"rank3",   name:"达人皇冠框", desc:"段位达到「梗界达人」解锁", price:0, type:"ach", needRank:2, icon:ASSET.badges[2]},
+  {id:"rank4",   name:"王者火焰框", desc:"段位达到「冲浪王者」解锁", price:0, type:"ach", needRank:3, icon:ASSET.badges[3]},
+  {id:"rank5",   name:"梗神紫金框", desc:"段位达到「梗之神」解锁", price:0, type:"ach", needRank:4, icon:ASSET.badges[4]}
+];
+const TITLES = [
+  {id:"none",    name:"无名小卒",   desc:"初始称号", price:0, type:"buy", icon:ASSET.frame},
+  {id:"joker",   name:"梗王本王",   desc:"金币商城兑换", price:200, type:"buy", icon:ASSET.badges[2]},
+  {id:"combo",   name:"连击狂魔",   desc:"累计答对 100 题解锁", price:0, type:"ach", needCorrect:100, icon:ASSET.emoCombo[0]},
+  {id:"collect", name:"梗百科全书", desc:"收集 100 个梗解锁", price:0, type:"ach", needBook:100, icon:ASSET.book},
+  {id:"camp",    name:"闯关通关者", desc:"通关单人闯关全部 30 关解锁", price:0, type:"ach", needLevel:30, icon:ASSET.win},
+  {id:"vs",      name:"对战常胜将军", desc:"对战累计获胜 10 场解锁", price:0, type:"ach", needVsWin:10, icon:ASSET.vsWin}
+];
+const CIRCLES = ["通用","外网","童年游戏","土味抽象","电竞","美妆","三坑消费","说唱","影视综艺","饭圈","萌宠","第五人格","火影"];
+const CIRCLE_PRICE = 60;
+
+const DEFAULT_STATE = {
+  coins: 100, stars: 0, level: 1, combo: 0,
+  encyclopedia: {}, lastCheckin: "",
+  totalPlayed: 0, totalCorrect: 0, vsWins: 0,
+  tools: {exclude:0, delay:0},
+  framesOwned: ["default"], titlesOwned: ["none"],
+  frameEquipped: "default", titleEquipped: "none",
+  circlesUnlocked: ["通用"], circleBest: {},
+  nickname: "", lastRename: 0,
+  soundOn: true, bgmOn: true, guided: false,
+  campBestTime: null, vsBestTime: null, friendBestTime: null, circleBestTime: {},
+  campPassed: {}, campLevelBest: {}, campTotalBest: null
+};
+let state = loadState();
+
+function loadState(){
+  try{
+    const raw = localStorage.getItem("memeQuizStateV2");
+    if(raw){
+      const parsed = JSON.parse(raw);
+      const merged = Object.assign({}, DEFAULT_STATE, parsed);
+      merged.tools = Object.assign({exclude:0,delay:0}, parsed.tools);
+      merged.encyclopedia = parsed.encyclopedia||{};
+      merged.framesOwned = parsed.framesOwned||["default"];
+      merged.titlesOwned = parsed.titlesOwned||["none"];
+      merged.circlesUnlocked = parsed.circlesUnlocked||["通用"];
+      merged.circleBest = parsed.circleBest||{};
+      merged.nickname = parsed.nickname||"";
+      merged.lastRename = parsed.lastRename||0;
+      merged.soundOn = parsed.soundOn!==false;
+      merged.bgmOn = parsed.bgmOn!==false;
+      merged.guided = parsed.guided===true;
+      merged.campPassed = parsed.campPassed||{};
+      merged.campLevelBest = parsed.campLevelBest||{};
+      // 旧版本无选关进度：按 level 补推已过关，避免老玩家全部被锁
+      if(!parsed.campPassed || Object.keys(parsed.campPassed).length===0){
+        merged.campPassed={};
+        for(let k=1;k<(parsed.level||1);k++){ merged.campPassed[k]=true; }
+      }
+      merged.campTotalBest = parsed.campTotalBest==null?null:parsed.campTotalBest;
+      merged.campBestTime = parsed.campBestTime==null?null:parsed.campBestTime;
+      merged.vsBestTime = parsed.vsBestTime==null?null:parsed.vsBestTime;
+      merged.friendBestTime = parsed.friendBestTime==null?null:parsed.friendBestTime;
+      merged.circleBestTime = parsed.circleBestTime||{};
+      return merged;
+    }
+  }catch(e){}
+  return JSON.parse(JSON.stringify(DEFAULT_STATE));
+}
+function saveState(){ try{ localStorage.setItem("memeQuizStateV2", JSON.stringify(state)); }catch(e){} }
+function getRankIndex(){ let idx=0; for(let i=0;i<RANKS.length;i++){ if(state.stars>=RANKS[i].min) idx=i; } return idx; }
+function rankName(){ return RANKS[getRankIndex()].name; }
+function rankBadge(){ return ASSET.badges[getRankIndex()]; }
+
+function shuffle(arr){ const a=arr.slice(); for(let i=a.length-1;i>0;i--){ const j=Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; } return a; }
+// 打乱单题选项顺序并重映射答案位置，避免答案固定在 A
+function shuffleQuestion(q){
+  const order=shuffle([0,1,2,3]);
+  const options=order.map(i=>q.options[i]);
+  const ans=order.indexOf(q.ans);
+  const orig=(typeof q._oi==="number")?QUESTIONS[q._oi]:(QUESTIONS.includes(q)?q:null);
+  const oi=orig?QUESTIONS.indexOf(orig):-1;
+  return {diff:q.diff,cat:q.cat,q:q.q,options,ans,exp:q.exp,_oi:oi};
+}
+function pick(arr,n){ if(arr.length<=n) return shuffle(arr); return shuffle(arr).slice(0,n); }
+function todayStr(){ const d=new Date(); return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0"); }
+function rand(arr){ return arr[Math.floor(Math.random()*arr.length)]; }
+function esc(s){ return String(s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c])); }
+function vibrate(ms){ try{ if(navigator.vibrate) navigator.vibrate(ms); }catch(e){} }
+
+/* ==================== 音效 / BGM 引擎（Web Audio 合成） ==================== */
+let AudioCtx=null, bgmTimer=null, bgmStep=0, masterGain=null;
+function ac(){
+  if(!AudioCtx){
+    try{
+      const Ctx=window.AudioContext||window.webkitAudioContext;
+      AudioCtx=new Ctx();
+      masterGain=AudioCtx.createGain();
+      masterGain.gain.value=0.9;
+      masterGain.connect(AudioCtx.destination);
+    }catch(e){}
+  }
+  if(AudioCtx && AudioCtx.state==="suspended"){ AudioCtx.resume(); }
+  return AudioCtx;
+}
+function tone(freq, dur, type, vol, when=0){
+  if(!state.soundOn) return;
+  const ctx=ac(); if(!ctx) return;
+  try{
+    const t=ctx.currentTime+when;
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type=type||"sine"; o.frequency.setValueAtTime(freq,t);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(vol||0.3,t+0.015);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+    o.connect(g); g.connect(masterGain||ctx.destination);
+    o.start(t); o.stop(t+dur+0.02);
+  }catch(e){}
+}
+const SFX={
+  click(){ tone(660,0.08,"triangle",0.22); },
+  ok(){ tone(523,0.13,"triangle",0.3); tone(784,0.18,"triangle",0.3,0.09); },
+  no(){ tone(220,0.22,"sawtooth",0.22); tone(160,0.24,"sawtooth",0.22,0.1); },
+  combo(){ tone(660,0.1,"square",0.22); tone(880,0.1,"square",0.22,0.08); tone(1175,0.18,"square",0.22,0.16); },
+  win(){ [523,659,784,1047].forEach((f,i)=>tone(f,0.2,"triangle",0.26,i*0.11)); },
+  lose(){ [392,330,262].forEach((f,i)=>tone(f,0.22,"sawtooth",0.18,i*0.13)); },
+  coin(){ tone(988,0.09,"square",0.22); tone(1319,0.16,"square",0.22,0.07); },
+  door(){ tone(440,0.12,"sine",0.22); tone(554,0.12,"sine",0.22,0.1); },
+  record(){ [784,988,1175,1568].forEach((f,i)=>tone(f,0.16,"triangle",0.26,i*0.09)); }
+};
+// 轻快循环 BGM：C 大调分解和弦 + 低音，交替进行
+const BGM_NOTES=[262,330,392,523,392,330,294,349,262,330,392,494,392,330,294,247];
+function bgmTick(){
+  if(!state.bgmOn) return;
+  const ctx=ac(); if(!ctx) return;
+  try{
+    const t=ctx.currentTime;
+    const f=BGM_NOTES[bgmStep%BGM_NOTES.length];
+    const o=ctx.createOscillator(), g=ctx.createGain();
+    o.type="sine"; o.frequency.setValueAtTime(f,t);
+    g.gain.setValueAtTime(0.0001,t);
+    g.gain.exponentialRampToValueAtTime(0.14,t+0.02);
+    g.gain.exponentialRampToValueAtTime(0.0001,t+0.28);
+    o.connect(g); g.connect(masterGain||ctx.destination); o.start(t); o.stop(t+0.3);
+    if(bgmStep%4===0){
+      const b=ctx.createOscillator(), bg=ctx.createGain();
+      b.type="triangle"; b.frequency.setValueAtTime(f/2,t);
+      bg.gain.setValueAtTime(0.0001,t);
+      bg.gain.exponentialRampToValueAtTime(0.12,t+0.02);
+      bg.gain.exponentialRampToValueAtTime(0.0001,t+0.4);
+      b.connect(bg); bg.connect(masterGain||ctx.destination); b.start(t); b.stop(t+0.42);
+    }
+    bgmStep++;
+  }catch(e){}
+}
+function startBGM(){
+  stopBGM();
+  if(!state.bgmOn) return;
+  bgmTimer=setInterval(bgmTick,300);
+}
+function stopBGM(){ if(bgmTimer){ clearInterval(bgmTimer); bgmTimer=null; } }
+function toggleBGM(){ state.bgmOn=!state.bgmOn; saveState(); if(state.bgmOn) startBGM(); else stopBGM(); }
+function toggleSound(){ state.soundOn=!state.soundOn; saveState(); if(state.soundOn) SFX.click(); }
+
+/* ==================== 昵称工具 ==================== */
+const RENAME_PRICE=60, RENAME_COOLDOWN=7*86400000, NAME_MAX=6;
+function displayName(){ return state.nickname||"冲浪萌新"; }
+function renameCooldownLeft(){
+  if(!state.lastRename) return 0;
+  return Math.max(0, RENAME_COOLDOWN-(Date.now()-state.lastRename));
+}
+function fmtCooldown(ms){
+  const d=Math.floor(ms/86400000), h=Math.floor(ms%86400000/3600000);
+  if(d>0) return `${d} 天 ${h} 小时`;
+  const m=Math.floor(ms%3600000/60000);
+  return `${h} 时 ${m} 分`;
+}
+function fmtTime(sec){
+  sec=Math.round(sec);
+  const m=Math.floor(sec/60), s=sec%60;
+  return m>0?`${m}分${String(s).padStart(2,"0")}秒`:`${s}秒`;
+}
+
+function frameUnlocked(f){ if(f.type==="buy") return true; if(f.needRank!==undefined) return getRankIndex()>=f.needRank; return true; }
+function titleUnlocked(t){
+  if(t.type==="buy") return true;
+  if(t.needCorrect!==undefined) return state.totalCorrect>=t.needCorrect;
+  if(t.needBook!==undefined) return Object.keys(state.encyclopedia).length>=t.needBook;
+  if(t.needLevel!==undefined) return state.level>=t.needLevel;
+  if(t.needVsWin!==undefined) return state.vsWins>=t.needVsWin;
+  return true;
+}
+function frameById(id){ return FRAMES.find(f=>f.id===id)||FRAMES[0]; }
+function titleById(id){ return TITLES.find(t=>t.id===id)||TITLES[0]; }
+
+const app = document.getElementById("app");
+function clearOverlays(){ document.querySelectorAll(".feedback").forEach(d=>d.remove()); }
+function leaveQuiz(){ if(typeof QuizEngine!=="undefined") QuizEngine.stop(); clearOverlays(); }
+function showScreen(id){
+  leaveQuiz();
+  document.querySelectorAll(".screen").forEach(s=>s.classList.remove("active"));
+  const el=document.getElementById(id);
+  if(el) el.classList.add("active");
+  window.scrollTo(0,0);
+}
+
+function renderSplash(){
+  app.innerHTML = `
+  <div class="screen active" id="screen-splash">
+    <img onerror="this.style.visibility='hidden'" class="hero" src="${ASSET.splash}" alt="梗王冲浪挑战">
+    <h1>梗王冲浪挑战</h1>
+    <p>测测你的互联网冲浪等级<br>单人闯关 · 好友单挑 · 1v1对战 · 梗浓度测试</p>
+    <button class="btn" onclick="enterGame()">开始冲浪</button>
+  </div>`;
+}
+function enterGame(){
+  SFX.door();
+  if(!state.nickname){ openFirstNickname(); return; }
+  renderLobby();
+  if(!state.guided){ startGuide(); }
+}
+function openFirstNickname(){
+  const mask=document.createElement("div");
+  mask.className="modal-mask";
+  mask.innerHTML=`<div class="modal-card">
+    <h2>给自己起个名</h2>
+    <p>最多 ${NAME_MAX} 位，汉字 / 英文 / 数字 / 符号都可以，这就是你在对局里的昵称~</p>
+    <input id="firstNick" class="text-input" maxlength="${NAME_MAX}" placeholder="输入游戏名">
+    <button class="btn" style="margin-top:14px" onclick="confirmFirstNick()">进入冲浪</button>
+  </div>`;
+  document.body.appendChild(mask);
+  document.getElementById("firstNick").focus();
+}
+function confirmFirstNick(){
+  const v=(document.getElementById("firstNick").value||"").trim();
+  if(v.length===0){ alert("先起个昵称再开局哦~"); return; }
+  if(v.length>NAME_MAX){ alert(`昵称最多 ${NAME_MAX} 位`); return; }
+  state.nickname=v; saveState();
+  document.querySelector(".modal-mask").remove();
+  renderLobby();
+  if(!state.guided){ startGuide(); }
+}
+
+function renderLobby(){
+  leaveQuiz();
+  const ri=getRankIndex();
+  const nextRank=RANKS[ri+1];
+  const prog=nextRank?Math.min(100,Math.round((state.stars-RANKS[ri].min)/(nextRank.min-RANKS[ri].min)*100)):100;
+  const title=titleById(state.titleEquipped);
+  app.innerHTML = `
+  <div class="screen active" id="screen-lobby">
+    <div class="topbar">
+      <div class="title">梗王冲浪挑战</div>
+      <div class="top-actions">
+        <div class="coin-box"><img onerror="this.style.visibility='hidden'" src="${ASSET.coin}">${state.coins}</div>
+        <button class="icon-action" title="音效" onclick="toggleSound()">${state.soundOn?"🔊":"🔇"}</button>
+        <button class="icon-action" title="BGM" onclick="toggleBGM()">${state.bgmOn?"🎵":"🔈"}</button>
+      </div>
+    </div>
+    <div class="rank-bar">
+      <img onerror="this.style.visibility='hidden'" class="badge" src="${rankBadge()}">
+      <div class="info">
+        <div class="rank-name">${esc(displayName())} <span style="color:var(--yellow);font-size:13px">· ${esc(title.name)}</span></div>
+        <div class="stars">${rankName()} · ${state.stars} 星</div>
+        <div class="progress"><div style="width:${prog}%"></div></div>
+      </div>
+    </div>
+    <div class="menu-card" onclick="SFX.click();renderCampaign()">
+      <img onerror="this.style.visibility='hidden'" src="${ASSET.camp}">
+      <div class="mask"><h3>单人闯关</h3><p>30关梯度挑战 · 选关冲纪录</p></div>
+    </div>
+    <div class="menu-grid">
+      <div class="menu-card" onclick="SFX.click();startVS()">
+        <img onerror="this.style.visibility='hidden'" src="${ASSET.vs}">
+        <div class="mask"><h3>1v1对战</h3><p>AI对决 升段位赢金币</p></div>
+      </div>
+      <div class="menu-card" onclick="SFX.click();renderFriend()">
+        <img onerror="this.style.visibility='hidden'" src="${ASSET.vs}">
+        <div class="mask"><h3>好友单挑</h3><p>建房邀请码 · 约好友同台接梗</p></div>
+      </div>
+    </div>
+    <div class="menu-grid" style="margin-top:12px">
+      <div class="menu-card" onclick="SFX.click();startTest()">
+        <img onerror="this.style.visibility='hidden'" src="${ASSET.test}">
+        <div class="mask"><h3>浓度测试</h3><p>30题生成你的冲浪报告</p></div>
+      </div>
+      <div class="menu-card" onclick="SFX.click();renderCircleList()">
+        <div class="mask" style="background:rgba(45,27,82,.9)"><h3>圈层专场</h3><p>垂直圈层 · 硬核接梗</p></div>
+      </div>
+    </div>
+    <div class="menu-grid" style="margin-top:12px">
+      <div class="menu-card" onclick="SFX.click();renderShop()">
+        <div class="mask" style="background:rgba(45,27,82,.9)"><h3>梗商城</h3><p>道具 · 头像框 · 称号</p></div>
+      </div>
+      <div class="menu-card" onclick="SFX.click();renderBook()">
+        <div class="mask" style="background:rgba(45,27,82,.9)"><h3>梗百科</h3><p>已收集 ${Object.keys(state.encyclopedia).length} 个梗</p></div>
+      </div>
+    </div>
+    <div class="menu-grid" style="margin-top:12px">
+      <div class="menu-card" onclick="SFX.click();renderCheckin()">
+        <div class="mask" style="background:rgba(45,27,82,.9)"><h3>每日签到</h3><p>领金币 · 连续签到领道具</p></div>
+      </div>
+      <div class="menu-card" onclick="SFX.click();renderProfile()">
+        <div class="mask" style="background:rgba(45,27,82,.9)"><h3>个人中心</h3><p>昵称 · 装扮 · 数据统计</p></div>
+      </div>
+    </div>
+    <div class="tabbar">
+      <div class="tab active"><span class="ico">🏠</span>大厅</div>
+      <div class="tab" onclick="renderBook()"><span class="ico">📖</span>百科</div>
+      <div class="tab" onclick="renderBoard()"><span class="ico">🏆</span>排行</div>
+      <div class="tab" onclick="renderCheckin()"><span class="ico">📅</span>签到</div>
+      <div class="tab" onclick="renderProfile()"><span class="ico">👤</span>我的</div>
+    </div>
+  </div>`;
+}
+
+/* ==================== 通用答题引擎 ==================== */
+const QuizEngine = {
+  timer:null, timeLeft:0, cur:0, questions:[], locked:false,
+  cfg:{timeLimit:15, hp:3}, startTime:0, totalTime:0,
+  start(questions, cfg, cb){
+    this.questions=questions.map(q=>q._server?Object.assign({},q):shuffleQuestion(q));
+    this.cfg=Object.assign({timeLimit:15,hp:3},cfg);
+    this.cb=cb; this.cur=0; this.locked=false;
+    this.startTime=Date.now(); this.totalTime=0;
+    this.renderQ();
+  },
+  renderQ(){
+    const q=this.questions[this.cur];
+    if(!q){ this.cb.onFinish && this.cb.onFinish(); return; }
+    this.locked=false; this.timeLeft=this.cfg.timeLimit;
+    const total=this.questions.length;
+    const head=this.cb.headInfo?this.cb.headInfo(this):"";
+    const exitBtn=this.cb.exitBtn?this.cb.exitBtn():"";
+    app.innerHTML=`
+    <div class="screen active" id="screen-quiz">
+      <div class="quiz-head">
+        <span>${head}</span>
+        <span style="display:flex;gap:8px;align-items:center">
+          <span class="timer">⏱ ${this.timeLeft}s</span>
+          <span style="font-size:13px;color:var(--text-dim)">已用 ${this.totalTime}s</span>
+          ${exitBtn}
+        </span>
+      </div>
+      <div class="timer-bar"><div id="timebar" style="width:100%"></div></div>
+      <div class="question">${this.cur+1}/${total}　${esc(q.q)}</div>
+      <div id="opts">
+        ${q.options.map((o,i)=>`<button class="option" data-i="${i}" onclick="QuizEngine.answer(${i})"><span class="tag">${"ABCD"[i]}</span>${esc(o)}</button>`).join("")}
+      </div>
+      <div class="quiz-tools" id="tools"></div>
+    </div>`;
+    this.startTimer();
+    this.cb.onRenderTool && this.cb.onRenderTool(document.getElementById("tools"));
+  },
+  startTimer(){
+    clearInterval(this.timer);
+    const bar=document.getElementById("timebar");
+    this.timer=setInterval(()=>{
+      this.timeLeft--;
+      const t=document.querySelector(".timer");
+      if(t) t.textContent="⏱ "+this.timeLeft+"s";
+      if(bar) bar.style.width=Math.max(0,this.timeLeft/this.cfg.timeLimit*100)+"%";
+      if(this.timeLeft<=0){ this.timeout(); }
+    },1000);
+  },
+  timeout(){ if(this.locked) return; this.locked=true; clearInterval(this.timer); this.reveal(null); },
+  answer(i){ if(this.locked) return; this.locked=true; clearInterval(this.timer); this.reveal(i); },
+  reveal(picked){
+    const q=this.questions[this.cur];
+    const correct=picked===q.ans;
+    const timeUsed=this.cfg.timeLimit-this.timeLeft;
+    this.totalTime+=timeUsed;
+    document.querySelectorAll(".option").forEach(btn=>{
+      const i=+btn.dataset.i; btn.classList.add("disabled");
+      if(i===q.ans) btn.classList.add("correct");
+      else if(i===picked) btn.classList.add("wrong");
+    });
+    const qi=q._oi!=null?q._oi:QUESTIONS.indexOf(q);
+    if(qi>=0){ state.encyclopedia[qi]=true; }
+    saveState();
+    if(correct){ SFX.ok(); } else { SFX.no(); }
+    this.cb.onAnswer && this.cb.onAnswer(correct,timeUsed,q);
+    setTimeout(()=>this.next(),900);
+  },
+  next(){ this.cur++; if(this.cur>=this.questions.length){ clearOverlays(); this.cb.onFinish && this.cb.onFinish(); } else this.renderQ(); },
+  stop(){ clearInterval(this.timer); }
+};
+
+/* ==================== 反馈文案库（抽象搞怪） ==================== */
+const OK_TITLES=["泰裤辣！","梗王实锤！","这都能对？","拿捏了！","稳如老狗！","DNA动了！","接梗满分！"];
+const NO_TITLES=["2G实锤…","建议退网…","我是谁我在哪…","这波翻车…","蚌埠住了…","信号断了…","梗没接住…"];
+
+function showFeedback({img,title,desc,emo,cb}){
+  const div=document.createElement("div");
+  div.className="feedback active";
+  div.onclick=(e)=>{ if(e.target===div) div.remove(); };
+  div.innerHTML=`<div class="fb-card">
+    <img onerror="this.style.visibility='hidden'" src="${img||rand(emo)}">
+    <div class="fb-title">${title}</div>
+    <div class="fb-desc">${desc||""}</div>
+    <button class="btn" onclick="this.closest('.feedback').remove();${cb||""}">继续冲</button>
+  </div>`;
+  document.body.appendChild(div);
+}
+function comboBanner(text){
+  SFX.combo();
+  const b=document.createElement("div");
+  b.className="combo-banner"; b.textContent=text;
+  document.body.appendChild(b);
+  setTimeout(()=>b.remove(),1000);
+}
+
+/* ==================== 单人闯关（选关 + 纪录 + 重置） ==================== */
+const CAMPAIGN = {
+  1:{diff:"easy", qnum:8,  time:15, hp:3},
+  2:{diff:"mid",  qnum:10, time:12, hp:3},
+  3:{diff:"hell", qnum:12, time:10, hp:2}
+};
+const CAMP_TOTAL_LEVEL=30;
+let camp={hp:3,score:0,combo:0,correct:0,level:1,qlist:[],chapter:1,totalTime:0,isRecord:false};
+
+function campChapter(lv){ return lv<=10?1:lv<=20?2:3; }
+
+// 闯关选关界面
+function renderCampaign(){
+  leaveQuiz();
+  const passed=Object.keys(state.campPassed).length;
+  const levelTimes=Object.values(state.campLevelBest||{});
+  const totalUsed=levelTimes.reduce((a,b)=>a+b,0);
+  let cells="";
+  for(let lv=1; lv<=CAMP_TOTAL_LEVEL; lv++){
+    const unlocked=lv===1||state.campPassed[lv-1]===true;
+    const done=state.campPassed[lv]===true;
+    const best=state.campLevelBest[lv];
+    const cls=done?"done":unlocked?"open":"lock";
+    const label=done?`✓ ${lv}`:unlocked?lv:`🔒`;
+    cells+=`<div class="camp-cell ${cls}" onclick="campPick(${lv},${unlocked})">
+      <div class="cc-num">${label}</div>
+      <div class="cc-best">${best!=null?fmtTime(best):(unlocked?"":"未解锁")}</div>
+    </div>`;
+  }
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="topbar">
+      <div class="title">单人闯关</div>
+      <button class="icon-btn" onclick="renderLobby()">退出</button>
+    </div>
+    <div class="result-card" style="padding:16px">
+      <p style="color:var(--text-dim);font-size:13px">已通过 ${passed}/${CAMP_TOTAL_LEVEL} 关　全对可刷新单关最佳用时纪录</p>
+      <p style="margin-top:8px;font-weight:800;color:var(--yellow)">⏱ 已通过关卡累计总时长：${totalUsed>0?fmtTime(totalUsed):"0秒"}${state.campTotalBest!=null?`　·　全通最佳：${fmtTime(state.campTotalBest)}`:""}</p>
+    </div>
+    <div class="camp-grid">${cells}</div>
+    <button class="btn ghost" style="margin-top:14px;color:var(--red)" onclick="campResetAll()">🔄 一键重置所有关卡</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderLobby()">返回大厅</button>
+  </div>`;
+}
+function campPick(lv,unlocked){
+  if(!unlocked){ alert("请先完成前面的关卡噢，宝~"); SFX.no(); return; }
+  SFX.click();
+  startCampaign(lv);
+}
+function startCampaign(lv){
+  leaveQuiz();
+  lv=lv||state.level;
+  const chapter=campChapter(lv);
+  const cfg=CAMPAIGN[chapter];
+  const pool=QUESTIONS.filter(q=>q.diff===cfg.diff);
+  camp={hp:cfg.hp,score:0,combo:0,correct:0,level:lv,qlist:pick(pool,cfg.qnum),chapter,totalTime:0,isRecord:false};
+  QuizEngine.start(camp.qlist,{timeLimit:cfg.time,hp:cfg.hp},{
+    headInfo:()=>`第${lv}关 · ❤ ${camp.hp}/${cfg.hp} · 已用 ${QuizEngine.totalTime}s`,
+    exitBtn:()=>`<button class="icon-btn" onclick="quitCampaign()">退出</button>`,
+    onAnswer(correct,timeUsed,q){
+      state.totalPlayed++;
+      if(correct){
+        state.totalCorrect++; camp.combo++; camp.correct++;
+        const speed=Math.round(timeUsed/cfg.time*50);
+        let gain=100+Math.max(0,50-speed);
+        if(camp.combo>=3) gain=Math.round(gain*(1+Math.min(camp.combo-2,5)*0.1));
+        camp.score+=gain;
+        state.coins+=Math.round(gain/20);
+        saveState(); vibrate(30);
+        if(camp.combo>=3){ comboBanner("🔥 连对 "+camp.combo+" 题！"); }
+        const emo=camp.combo>=3?ASSET.emoCombo:ASSET.emoOk;
+        showFeedback({img:rand(emo),title:camp.combo>=3?`${camp.combo}连击！${rand(OK_TITLES)}`:rand(OK_TITLES),
+          desc:`+${gain}分　解析：${q.exp}`,cb:""});
+      }else{
+        camp.combo=0; camp.hp--; saveState(); vibrate([40,30,40]);
+        showFeedback({img:rand(ASSET.emoNo),title:rand(NO_TITLES),
+          desc:`正确答案：${q.options[q.ans]}。${q.exp}`,cb:""});
+        if(camp.hp<=0){ QuizEngine.stop(); setTimeout(()=>{ clearOverlays(); campFail(); },1000); }
+      }
+    },
+    onFinish(){ campWin(); }
+  });
+}
+function quitCampaign(){
+  if(!confirm("确定要退出本局闯关吗？当前进度不会保存哦~")) return;
+  leaveQuiz(); renderCampaign();
+}
+function campWin(){
+  SFX.win();
+  const allCorrect=camp.correct===camp.qlist.length;
+  camp.totalTime=Math.round(QuizEngine.totalTime);
+  // 单关全对最佳用时
+  let newRecord=false;
+  if(allCorrect){
+    const prev=state.campLevelBest[camp.level];
+    if(prev==null||camp.totalTime<prev){ state.campLevelBest[camp.level]=camp.totalTime; newRecord=true; }
+    state.campPassed[camp.level]=true;
+    if(state.level<camp.level+1) state.level=Math.min(CAMP_TOTAL_LEVEL,camp.level+1);
+  }
+  // 全 30 关全对总用时纪录：仅当 30 关全部通过时累计最佳
+  const passedCount=Object.keys(state.campPassed).filter(k=>state.campPassed[k]).length;
+  if(passedCount>=CAMP_TOTAL_LEVEL){
+    const total=Object.values(state.campLevelBest).reduce((a,b)=>a+b,0);
+    if(state.campTotalBest==null||total<state.campTotalBest){ state.campTotalBest=total; }
+  }
+  const reward=30+camp.correct*5;
+  state.coins+=reward; camp.isRecord=newRecord;
+  saveState(); QuizEngine.stop();
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="result-card">
+      <img onerror="this.style.visibility='hidden'" src="${ASSET.win}">
+      <h2>闯关成功！泰裤辣！</h2>
+      ${newRecord?`<div style="color:var(--yellow);font-weight:800;margin:6px 0">🏆 破个人纪录！本关全对用时 ${fmtTime(camp.totalTime)}</div>`:""}
+      <div class="result-stats">
+        <div class="stat"><div class="num">${camp.correct}/${camp.qlist.length}</div><div class="lbl">答对题数</div></div>
+        <div class="stat"><div class="num">${fmtTime(camp.totalTime)}</div><div class="lbl">本局用时</div></div>
+        <div class="stat"><div class="num">+${reward}</div><div class="lbl">金币奖励</div></div>
+      </div>
+      <p style="color:var(--text-dim)">${allCorrect?`本关最佳：${fmtTime(state.campLevelBest[camp.level])}`:"本题未全对，不计入全对用时纪录"}</p>
+    </div>
+    <button class="btn" onclick="renderCampaign()">返回选关</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="startCampaign(${Math.min(CAMP_TOTAL_LEVEL,camp.level+1)})">下一关</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderLobby()">返回大厅</button>
+  </div>`;
+}
+function campFail(){
+  SFX.lose();
+  QuizEngine.stop();
+  camp.totalTime=Math.round(QuizEngine.totalTime);
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="result-card">
+      <img onerror="this.style.visibility='hidden'" src="${ASSET.fail}">
+      <h2>冲浪翻船啦…</h2>
+      <p style="color:var(--text-dim)">别灰心，回新手村充充电再来！</p>
+      <div class="result-stats">
+        <div class="stat"><div class="num">${camp.correct}</div><div class="lbl">答对</div></div>
+        <div class="stat"><div class="num">${fmtTime(camp.totalTime)}</div><div class="lbl">本局用时</div></div>
+        <div class="stat"><div class="num">${camp.level}</div><div class="lbl">当前关</div></div>
+      </div>
+    </div>
+    <button class="btn orange" onclick="startCampaign(${camp.level})">重新挑战</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderCampaign()">返回选关</button>
+  </div>`;
+}
+function campResetAll(){
+  if(!confirm("重置后所有关卡将被清空，是否确认重置？")) return;
+  state.campPassed={}; state.campLevelBest={}; state.campTotalBest=null; state.level=1;
+  saveState(); SFX.no(); renderCampaign();
+}
+
+/* ==================== 1v1 对战 ==================== */
+const VS={qnum:8,time:10,me:{score:0,correct:0},ai:{score:0,correct:0},qlist:[],tools:{exclude:0,delay:0},aiCorrectRate:0.6,aiTime:10,surrender:false,totalTime:0,isRecord:false};
+
+function startVS(){
+  leaveQuiz();
+  const ri=getRankIndex();
+  VS.aiCorrectRate=0.55+ri*0.09;
+  VS.aiTime=Math.max(4,11-ri*1.4);
+  VS.me={score:0,correct:0}; VS.ai={score:0,correct:0};
+  VS.tools={exclude:state.tools.exclude>0?1:0, delay:state.tools.delay>0?1:0};
+  VS.surrender=false; VS.totalTime=0; VS.isRecord=false;
+  const easy=pick(QUESTIONS.filter(q=>q.diff==="easy"),3);
+  const mid=pick(QUESTIONS.filter(q=>q.diff==="mid"),3);
+  const hell=pick(QUESTIONS.filter(q=>q.diff==="hell"),2);
+  VS.qlist=shuffle(easy.concat(mid,hell));
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="result-card">
+      <img onerror="this.style.visibility='hidden'" src="${ASSET.vs}">
+      <h2>匹配对手中…</h2>
+      <p style="color:var(--text-dim)">正在为你寻找同段位冲浪选手</p>
+    </div>
+  </div>`;
+  setTimeout(()=>{
+    QuizEngine.start(VS.qlist,{timeLimit:VS.time,hp:99},{
+      headInfo:()=>`我 ${VS.me.score} : ${VS.ai.score} 对手 · 已用 ${QuizEngine.totalTime}s`,
+      exitBtn:()=>`<button class="icon-btn" style="color:var(--red)" onclick="vsSurrender()">投降</button>`,
+      onRenderTool(box){
+        box.innerHTML=`
+          <button class="tool-btn" ${VS.tools.exclude?"":"disabled"} onclick="vsUseExclude()">✂ 排除错误项(${state.tools.exclude})</button>
+          <button class="tool-btn" ${VS.tools.delay?"":"disabled"} onclick="vsUseDelay()">⏳ 延时3秒(${state.tools.delay})</button>`;
+      },
+      onAnswer(correct,timeUsed,q){
+        state.totalPlayed++;
+        if(correct){
+          state.totalCorrect++; VS.me.correct++;
+          const speed=Math.round(timeUsed/VS.time*50);
+          VS.me.score+=100+Math.max(0,50-speed);
+        }
+        const aiCorrect=Math.random()<VS.aiCorrectRate;
+        const aiTime=VS.aiTime*(0.8+Math.random()*0.4);
+        if(aiCorrect){ VS.ai.correct++; VS.ai.score+=100+Math.max(0,Math.round((1-aiTime/VS.time)*50)); }
+        saveState();
+      },
+      onFinish(){ vsFinish(); }
+    });
+  },800);
+}
+function vsSurrender(){
+  if(!confirm("确定要投降吗？本局判负，段位星数会扣除哦~")) return;
+  VS.surrender=true; leaveQuiz(); vsFinish();
+}
+function vsUseExclude(){
+  if(!VS.tools.exclude) return;
+  VS.tools.exclude=0; state.tools.exclude--;
+  const q=QuizEngine.questions[QuizEngine.cur];
+  const wrong=q.options.map((_,i)=>i).filter(i=>i!==q.ans);
+  const hide=wrong[Math.floor(Math.random()*wrong.length)];
+  const btn=document.querySelector(`.option[data-i="${hide}"]`);
+  if(btn){ btn.style.visibility="hidden"; }
+  saveState();
+  const b=document.querySelectorAll(".tool-btn")[0]; if(b) b.disabled=true;
+}
+function vsUseDelay(){
+  if(!VS.tools.delay) return;
+  VS.tools.delay=0; state.tools.delay--;
+  VS.time+=3; QuizEngine.cfg.timeLimit+=3;
+  saveState();
+  const b=document.querySelectorAll(".tool-btn")[1]; if(b) b.disabled=true;
+}
+function vsFinish(){
+  QuizEngine.stop();
+  const surrendered=VS.surrender;
+  const win=!surrendered && VS.me.score>VS.ai.score;
+  const draw=!surrendered && VS.me.score===VS.ai.score;
+  VS.totalTime=Math.round(QuizEngine.totalTime);
+  const allCorrect=VS.me.correct===VS.qlist.length;
+  if(allCorrect){
+    const prev=state.vsBestTime;
+    if(prev==null||VS.totalTime<prev){ state.vsBestTime=VS.totalTime; VS.isRecord=true; }
+  }
+  if(win){ SFX.win(); state.stars++; state.coins+=40; state.vsWins++; }
+  else if(!draw){ SFX.lose(); if(state.stars>0) state.stars--; }
+  saveState();
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="result-card">
+      <img onerror="this.style.visibility='hidden'" src="${win?ASSET.vsWin:ASSET.vsLose}">
+      <h2>${win?"对战胜利！泰裤辣！":(draw?"势均力敌！":(surrendered?"你已投降，惜败一局…":"惜败一局…"))}</h2>
+      ${VS.isRecord?`<div style="color:var(--yellow);font-weight:800;margin:6px 0">🏆 破个人纪录！全对用时 ${fmtTime(VS.totalTime)}</div>`:""}
+      <div class="result-stats">
+        <div class="stat"><div class="num">${VS.me.correct}</div><div class="lbl">我答对</div></div>
+        <div class="stat"><div class="num">${VS.ai.correct}</div><div class="lbl">对手答对</div></div>
+        <div class="stat"><div class="num">${fmtTime(VS.totalTime)}</div><div class="lbl">本局用时</div></div>
+        <div class="stat"><div class="num">${win?"+1★":(draw?"±0":"-1★")}</div><div class="lbl">段位变化</div></div>
+      </div>
+      <p style="color:var(--text-dim)">${state.vsBestTime!=null?`全对最佳：${fmtTime(state.vsBestTime)}　`:''}当前段位：${rankName()}（${state.stars}星）</p>
+    </div>
+    <button class="btn" onclick="startVS()">再来一局</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderLobby()">返回大厅</button>
+  </div>`;
+}
+
+/* ==================== 好友单挑（WebSocket 联机） ==================== */
+// 联机后端：同目录 server.js（Node 内置 WebSocket，零依赖）。
+// 页面由 server.js 托管时自动用 ws://当前主机；直接双击 file:// 打开则回退到本机 localhost:8080。
+const FR={code:"",isHost:false,guestName:"",me:{score:0,correct:0},foe:{score:0,correct:0},
+  qlist:[],qnum:8,time:10,phase:"lobby",totalTime:0,isRecord:false,connected:false,foeLeft:false};
+let frSocket=null, frUid=localStorage.getItem("memeQuizUid")||"";
+function frWsUrl(){
+  if(location.protocol==="file:") return "ws://localhost:8080";
+  const proto=location.protocol==="https:"?"wss://":"ws://";
+  return proto+location.host;
+}
+function frSend(obj){ if(frSocket&&frSocket.readyState===1){ try{ frSocket.send(JSON.stringify(obj)); }catch(e){} } }
+function frEnsureSocket(){
+  if(frSocket&&(frSocket.readyState===0||frSocket.readyState===1)) return frSocket;
+  try{ frSocket=new WebSocket(frWsUrl()); }catch(e){ frSocket=null; }
+  if(!frSocket){ alert("联机服务连接失败，请确认后端已启动后再试~"); return null; }
+  frSocket.onopen=()=>{ if(!frUid){ frUid=crypto.randomUUID(); localStorage.setItem("memeQuizUid",frUid); } frSend({type:"hello",uid:frUid,name:displayName()}); };
+  frSocket.onmessage=ev=>{ let m; try{ m=JSON.parse(ev.data); }catch(e){ return; } frOnMessage(m); };
+  frSocket.onclose=()=>{ FR.connected=false; };
+  frSocket.onerror=()=>{ FR.connected=false; };
+  return frSocket;
+}
+function frClose(){ if(frSocket){ try{ frSocket.onclose=null; frSocket.close(); }catch(e){} frSocket=null; } FR.connected=false; }
+
+function renderFriend(){
+  leaveQuiz();
+  app.innerHTML=`
+  <div class="screen active" id="screen-friend">
+    <div class="topbar">
+      <div class="title">好友单挑</div>
+      <div class="coin-box"><img onerror="this.style.visibility='hidden'" src="${ASSET.coin}">${state.coins}</div>
+    </div>
+    <div class="result-card">
+      <img onerror="this.style.visibility='hidden'" src="${ASSET.vs}">
+      <h2>建房约好友</h2>
+      <p style="color:var(--text-dim)">房主生成 6 位邀请码，把码发给好友；好友输入正确码即可进房同台接梗。</p>
+    </div>
+    <button class="btn" onclick="createRoom()">🏠 创建房间</button>
+    <div style="margin:16px 0;text-align:center;color:var(--text-dim);font-size:13px">— 或输入邀请码加入 —</div>
+    <input id="joinCode" class="text-input code-input" maxlength="6" inputmode="numeric" placeholder="6 位邀请码">
+    <button class="btn ghost" style="margin-top:12px" onclick="joinRoom()">🚪 加入房间</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderLobby()">返回大厅</button>
+  </div>`;
+}
+
+function createRoom(){
+  const s=frEnsureSocket(); if(!s) return;
+  FR.phase="connecting";
+  app.innerHTML=`<div class="screen active"><div class="result-card"><h2>正在创建房间…</h2><p style="color:var(--text-dim)">连接联机服务器中</p></div></div>`;
+  const tryCreate=()=>{ frSend({type:"create",name:displayName()}); };
+  if(s.readyState===1) tryCreate(); else s.onopen=()=>{ frSend({type:"hello",uid:frUid,name:displayName()}); tryCreate(); };
+}
+function joinRoom(){
+  const raw=(document.getElementById("joinCode").value||"").trim();
+  if(!/^\d{6}$/.test(raw)){ alert("邀请码是 6 位数字哦~"); SFX.no(); return; }
+  const s=frEnsureSocket(); if(!s) return;
+  FR.phase="connecting";
+  app.innerHTML=`<div class="screen active"><div class="result-card"><h2>正在加入房间…</h2><p style="color:var(--text-dim)">校验邀请码中</p></div></div>`;
+  const tryJoin=()=>{ frSend({type:"join",code:raw,name:displayName()}); };
+  if(s.readyState===1) tryJoin(); else s.onopen=()=>{ frSend({type:"hello",uid:frUid,name:displayName()}); tryJoin(); };
+}
+
+function frOnMessage(m){
+  switch(m.type){
+    case "created":
+      FR.code=m.code; FR.isHost=true; FR.guestName="等待好友…";
+      FR.me={score:0,correct:0}; FR.foe={score:0,correct:0}; FR.connected=true; FR.foeLeft=false;
+      renderRoomWait(); break;
+    case "joined":
+      FR.code=m.code; FR.isHost=false; FR.guestName=m.foeName||"神秘好友";
+      FR.me={score:0,correct:0}; FR.foe={score:0,correct:0}; FR.connected=true; FR.foeLeft=false;
+      renderRoomWait(); break;
+    case "guest_joined":
+      FR.guestName=m.guestName; renderRoomWait(); break;
+    case "join_fail":
+      alert(m.reason||"邀请码不对哦，确认一下房主发的 6 位数字吧~"); SFX.no(); renderFriend(); break;
+    case "start":
+      FR.qlist=m.questions.map(q=>Object.assign({},q,{_server:true})); FR.me={score:0,correct:0}; FR.foe={score:0,correct:0};
+      FR.totalTime=0; FR.isRecord=false; FR.phase="quiz"; FR.foeLeft=false;
+      frStartQuiz(m.hostName,m.guestName); break;
+    case "score": {
+      const myRole=FR.isHost?"host":"guest";
+      const foeRole=myRole==="host"?"guest":"host";
+      FR.me={score:m[myRole].score,correct:m[myRole].correct};
+      FR.foe={score:m[foeRole].score,correct:m[foeRole].correct};
+      if(FR.phase==="quiz") frRefreshScore(); break;
+    }
+    case "opponent_left":
+      FR.foeLeft=true;
+      if(FR.phase==="quiz"){ QuizEngine.stop(); friendFinish(true); }
+      else { alert("好友已离开房间"); renderFriend(); }
+      break;
+    case "finish":
+      frFinishByServer(m); break;
+  }
+}
+
+function renderRoomWait(){
+  leaveQuiz();
+  const myName=displayName(), foeName=FR.isHost?FR.guestName:"你";
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="topbar">
+      <div class="title">房间等待中</div>
+      <button class="icon-btn" onclick="leaveRoom()">退出</button>
+    </div>
+    <div class="result-card">
+      <h2>${FR.isHost?"你的房间已建好":"已加入好友房间"}</h2>
+      <p style="color:var(--text-dim)">${FR.isHost?"把下面的 6 位邀请码发给好友，等对方入座后开战：":"等待房主与你开始对局…"}</p>
+      <div class="room-code">${FR.code}</div>
+      <div class="vs-room-head">
+        <div class="player-chip"><div class="p-name">${esc(myName)}${FR.isHost?"（房主）":""}</div><div class="p-score">0</div></div>
+        <div class="vs-vs">VS</div>
+        <div class="player-chip"><div class="p-name">${esc(foeName)}</div><div class="p-score">0</div></div>
+      </div>
+    </div>
+    ${FR.isHost?`<button class="btn" onclick="friendStart()">▶ 开始对战</button>`:`<p style="color:var(--text-dim);text-align:center">房主准备好后即可开始…</p>`}
+    <button class="btn ghost" style="margin-top:12px" onclick="leaveRoom()">离开房间</button>
+  </div>`;
+}
+
+function friendStart(){
+  if(!FR.isHost){ return; }
+  frSend({type:"start"});
+}
+
+function frStartQuiz(hostName,guestName){
+  leaveQuiz();
+  const myRole=FR.isHost?"host":"guest";
+  QuizEngine.start(FR.qlist,{timeLimit:FR.time,hp:99},{
+    headInfo:()=>`${esc(displayName())} ${FR.me.score} : ${FR.foe.score} ${esc(FR.guestName||"好友")} · 已用 ${QuizEngine.totalTime}s`,
+    exitBtn:()=>`<button class="icon-btn" style="color:var(--red)" onclick="friendSurrender()">投降</button>`,
+    onAnswer(correct,timeUsed,q){
+      state.totalPlayed++;
+      if(correct) state.totalCorrect++;
+      saveState();
+      // 联机题选项顺序与服务端一致；答对上报正确位置，答错上报一个非正确位（服务端按 picked===q.ans 校验）
+      const picked=correct?q.ans:-1;
+      frSend({type:"answer", qIndex:QuizEngine.cur, picked, correct, timeUsed});
+    },
+    onFinish(){ /* 等待服务端 finish 汇总双方比分 */ }
+  });
+}
+function frRefreshScore(){
+  const el=document.querySelector(".quiz-head");
+  if(el){ el.firstElementChild.textContent=`${esc(displayName())} ${FR.me.score} : ${FR.foe.score} ${esc(FR.guestName||"好友")} · 已用 ${QuizEngine.totalTime}s`; }
+}
+
+function friendSurrender(){
+  if(!confirm("确定要投降离开本场好友对战吗？")) return;
+  frSend({type:"leave"});
+  leaveQuiz(); friendFinish(true);
+}
+function leaveRoom(){
+  frSend({type:"leave"});
+  frClose();
+  if(QuizEngine) QuizEngine.stop();
+  leaveQuiz(); renderFriend();
+}
+
+function frFinishByServer(m){
+  QuizEngine.stop();
+  FR.totalTime=Math.round(QuizEngine.totalTime);
+  const myRole=FR.isHost?"host":"guest";
+  const win=m.winner===myRole, draw=m.winner==="draw";
+  FR.me={score:m[myRole].score,correct:m[myRole].correct};
+  const foeRole=myRole==="host"?"guest":"host";
+  FR.foe={score:m[foeRole].score,correct:m[foeRole].correct};
+  const allCorrect=FR.me.correct===FR.qlist.length;
+  if(allCorrect){
+    const prev=state.friendBestTime;
+    if(prev==null||FR.totalTime<prev){ state.friendBestTime=FR.totalTime; FR.isRecord=true; }
+  }
+  if(win){ SFX.win(); state.coins+=30; state.vsWins++; }
+  else if(!draw){ SFX.lose(); }
+  saveState();
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="result-card">
+      <img onerror="this.style.visibility='hidden'" src="${win?ASSET.vsWin:ASSET.vsLose}">
+      <h2>${win?"好友对决获胜！泰裤辣！":(draw?"势均力敌！":"惜败好友…")}</h2>
+      ${FR.isRecord?`<div style="color:var(--yellow);font-weight:800;margin:6px 0">🏆 破个人纪录！全对用时 ${fmtTime(FR.totalTime)}</div>`:""}
+      <div class="result-stats">
+        <div class="stat"><div class="num">${FR.me.correct}</div><div class="lbl">我答对</div></div>
+        <div class="stat"><div class="num">${FR.foe.correct}</div><div class="lbl">好友答对</div></div>
+        <div class="stat"><div class="num">${fmtTime(FR.totalTime)}</div><div class="lbl">本局用时</div></div>
+        <div class="stat"><div class="num">${win?"+30金币":"±0"}</div><div class="lbl">奖励</div></div>
+      </div>
+      <p style="color:var(--text-dim)">${state.friendBestTime!=null?`全对最佳：${fmtTime(state.friendBestTime)}　`:''}房间号：${FR.code}</p>
+    </div>
+    <button class="btn" onclick="createRoom()">再来一局</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderFriend()">返回好友页</button>
+  </div>`;
+}
+function friendFinish(surrender){
+  QuizEngine.stop();
+  const win=!surrender && FR.me.score>FR.foe.score, draw=!surrender && FR.me.score===FR.foe.score;
+  FR.totalTime=Math.round(QuizEngine.totalTime);
+  if(win){ SFX.win(); state.coins+=30; state.vsWins++; }
+  else if(!draw){ SFX.lose(); }
+  saveState();
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="result-card">
+      <img onerror="this.style.visibility='hidden'" src="${win?ASSET.vsWin:ASSET.vsLose}">
+      <h2>${win?"好友对决获胜！泰裤辣！":(draw?"势均力敌！":(surrender?"你已投降，惜败好友…":"惜败好友…"))}</h2>
+      <div class="result-stats">
+        <div class="stat"><div class="num">${FR.me.correct}</div><div class="lbl">我答对</div></div>
+        <div class="stat"><div class="num">${FR.foe.correct}</div><div class="lbl">好友答对</div></div>
+        <div class="stat"><div class="num">${fmtTime(FR.totalTime)}</div><div class="lbl">本局用时</div></div>
+        <div class="stat"><div class="num">${win?"+30金币":"±0"}</div><div class="lbl">奖励</div></div>
+      </div>
+      <p style="color:var(--text-dim)">房间号：${FR.code}</p>
+    </div>
+    <button class="btn" onclick="createRoom()">再来一局</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderFriend()">返回好友页</button>
+  </div>`;
+}
+
+/* ==================== 梗浓度测试 ==================== */
+const TEST={qlist:[],correct:0,totalTime:0,catStat:{}};
+function startTest(){
+  leaveQuiz();
+  const easy=pick(QUESTIONS.filter(q=>q.diff==="easy"),12);
+  const mid=pick(QUESTIONS.filter(q=>q.diff==="mid"),12);
+  const hell=pick(QUESTIONS.filter(q=>q.diff==="hell"),6);
+  TEST.qlist=shuffle(easy.concat(mid,hell));
+  TEST.correct=0; TEST.totalTime=0; TEST.catStat={};
+  QuizEngine.start(TEST.qlist,{timeLimit:12,hp:99},{
+    headInfo:()=>`浓度测试 ${QuizEngine.cur+1}/${TEST.qlist.length}`,
+    exitBtn:()=>`<button class="icon-btn" onclick="quitTest()">退出</button>`,
+    onAnswer(correct,timeUsed,q){
+      state.totalPlayed++; TEST.totalTime+=timeUsed;
+      if(correct){ state.totalCorrect++; TEST.correct++; TEST.catStat[q.cat]=(TEST.catStat[q.cat]||0)+1; }
+      saveState();
+    },
+    onFinish(){ testResult(); }
+  });
+}
+function quitTest(){
+  if(!confirm("确定要退出浓度测试吗？本局报告将不生成哦~")) return;
+  leaveQuiz(); renderLobby();
+}
+function testResult(){
+  QuizEngine.stop();
+  const n=TEST.qlist.length;
+  let conc=Math.round(TEST.correct/n*100);
+  const avgTime=TEST.totalTime/n;
+  let speedBonus=avgTime<=4?3:avgTime<=8?1:0;
+  conc=Math.max(0,Math.min(100,conc+speedBonus));
+  let tier;
+  if(conc<=30) tier=0; else if(conc<=60) tier=1; else if(conc<=85) tier=2; else tier=3;
+  const ranks=["2G断网选手","5G普通网民","资深冲浪达人","互联网梗神"];
+  const evalTxt=[
+    "冲浪信号不太稳定，多刷刷短视频补补课吧！",
+    "正常网民水平，日常接梗基本够用～",
+    "冲浪浓度很高，大部分梗都难不倒你！",
+    "再冲浪下去就要住互联网里了，梗王实锤！"
+  ];
+  const topCat=Object.entries(TEST.catStat).sort((a,b)=>b[1]-a[1])[0];
+  const goodCat=topCat?topCat[0]:"通用";
+  TEST.totalTime=Math.round(QuizEngine.totalTime);
+  state.coins+=20; saveState();
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="conc-card">
+      <img onerror="this.style.visibility='hidden'" class="conc-img" src="${ASSET.conc[tier]}">
+      <div class="conc-body">
+        <div class="conc-num">${conc}%</div>
+        <div class="conc-rank">${ranks[tier]}</div>
+        <div class="conc-tag">擅长领域：${goodCat}　用时 ${fmtTime(TEST.totalTime)}<br>${evalTxt[tier]}</div>
+      </div>
+    </div>
+    <button class="btn" onclick="shareResult(${conc},'${ranks[tier]}','${goodCat}')">生成分享图</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="startTest()">再测一次</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderLobby()">返回大厅</button>
+  </div>`;
+}
+function shareResult(conc,rank,cat){
+  const div=document.createElement("div");
+  div.className="feedback active";
+  div.innerHTML=`<div class="fb-card">
+    <img onerror="this.style.visibility='hidden'" src="${ASSET.qr}">
+    <div class="fb-title">${rank}</div>
+    <div class="fb-desc">冲浪浓度 ${conc}%　擅长：${cat}<br>长按保存图片，分享给朋友测测吧！</div>
+    <button class="btn" onclick="this.parentElement.parentElement.remove()">关闭</button>
+  </div>`;
+  document.body.appendChild(div);
+}
+
+/* ==================== 圈层专项赛 ==================== */
+const CIRCLE={cat:"",qlist:[],correct:0,score:0,totalTime:0,isRecord:false};
+function renderCircleList(){
+  leaveQuiz();
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="topbar">
+      <div class="title">圈层专场</div>
+      <div class="coin-box"><img onerror="this.style.visibility='hidden'" src="${ASSET.coin}">${state.coins}</div>
+    </div>
+    <p style="color:var(--text-dim);font-size:13px;margin-bottom:14px">垂直圈层硬核接梗，未解锁专场可用 ${CIRCLE_PRICE} 金币解锁</p>
+    <div class="menu-grid">
+      ${CIRCLES.map(cat=>{
+        const unlocked=state.circlesUnlocked.includes(cat);
+        const cnt=QUESTIONS.filter(q=>q.cat===cat).length;
+        const best=state.circleBest[cat];
+        return `<div class="menu-card" onclick="circleEnter('${cat}')">
+          <img onerror="this.style.visibility='hidden'" src="${ASSET.catCover[cat]||ASSET.test}">
+          <div class="mask">
+            <h3>${esc(cat)}专场</h3>
+            <p>${unlocked?(best!=null?`历史最佳 ${best} 分 · `:"")+cnt+"题":"🔒 "+CIRCLE_PRICE+"金币解锁"}</p>
+          </div>
+        </div>`;
+      }).join("")}
+    </div>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderLobby()">返回大厅</button>
+  </div>`;
+}
+function circleEnter(cat){
+  if(!state.circlesUnlocked.includes(cat)){
+    if(state.coins<CIRCLE_PRICE){ alert("金币不够啦，去闯关/对战/签到赚金币吧！"); return; }
+    if(!confirm(`花费 ${CIRCLE_PRICE} 金币解锁「${cat}」专场？`)) return;
+    state.coins-=CIRCLE_PRICE; state.circlesUnlocked.push(cat); saveState();
+  }
+  leaveQuiz();
+  CIRCLE.cat=cat;
+  const pool=QUESTIONS.filter(q=>q.cat===cat);
+  CIRCLE.qlist=pick(pool,Math.min(10,pool.length));
+  CIRCLE.correct=0; CIRCLE.score=0; CIRCLE.totalTime=0; CIRCLE.isRecord=false;
+  QuizEngine.start(CIRCLE.qlist,{timeLimit:12,hp:99},{
+    headInfo:()=>`${esc(cat)}专场 ${QuizEngine.cur+1}/${CIRCLE.qlist.length} · 已用 ${QuizEngine.totalTime}s`,
+    exitBtn:()=>`<button class="icon-btn" onclick="quitCircle()">退出</button>`,
+    onAnswer(correct,timeUsed,q){
+      state.totalPlayed++;
+      if(correct){
+        state.totalCorrect++; CIRCLE.correct++;
+        const speed=Math.round(timeUsed/12*50);
+        CIRCLE.score+=100+Math.max(0,50-speed);
+        vibrate(30);
+        showFeedback({img:rand(ASSET.emoOk),title:rand(OK_TITLES),desc:`+${100+Math.max(0,50-speed)}分　解析：${q.exp}`,cb:""});
+      }else{
+        vibrate([40,30,40]);
+        showFeedback({img:rand(ASSET.emoNo),title:rand(NO_TITLES),desc:`正确答案：${q.options[q.ans]}。${q.exp}`,cb:""});
+      }
+      saveState();
+    },
+    onFinish(){ circleFinish(); }
+  });
+}
+function quitCircle(){
+  if(!confirm("确定要退出本圈层专场吗？")) return;
+  leaveQuiz(); renderCircleList();
+}
+function circleFinish(){
+  QuizEngine.stop();
+  CIRCLE.totalTime=Math.round(QuizEngine.totalTime);
+  const prev=state.circleBest[CIRCLE.cat]||0;
+  if(CIRCLE.score>prev){ state.circleBest[CIRCLE.cat]=CIRCLE.score; }
+  const allCorrect=CIRCLE.correct===CIRCLE.qlist.length;
+  if(allCorrect){
+    const pt=state.circleBestTime[CIRCLE.cat];
+    if(pt==null||CIRCLE.totalTime<pt){ state.circleBestTime[CIRCLE.cat]=CIRCLE.totalTime; CIRCLE.isRecord=true; }
+  }
+  const reward=20+CIRCLE.correct*4;
+  state.coins+=reward; saveState();
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="result-card">
+      <img onerror="this.style.visibility='hidden'" src="${CIRCLE.correct>=CIRCLE.qlist.length*0.6?ASSET.win:ASSET.fail}">
+      <h2>${esc(CIRCLE.cat)}专场结算</h2>
+      ${CIRCLE.isRecord?`<div style="color:var(--yellow);font-weight:800;margin:6px 0">🏆 破个人纪录！全对用时 ${fmtTime(CIRCLE.totalTime)}</div>`:""}
+      <div class="result-stats">
+        <div class="stat"><div class="num">${CIRCLE.correct}/${CIRCLE.qlist.length}</div><div class="lbl">答对题数</div></div>
+        <div class="stat"><div class="num">${fmtTime(CIRCLE.totalTime)}</div><div class="lbl">本局用时</div></div>
+        <div class="stat"><div class="num">+${reward}</div><div class="lbl">金币奖励</div></div>
+      </div>
+      <p style="color:var(--text-dim)">历史最佳：${Math.max(prev,CIRCLE.score)} 分${state.circleBestTime[CIRCLE.cat]!=null?` · 全对最佳 ${fmtTime(state.circleBestTime[CIRCLE.cat])}`:""}</p>
+    </div>
+    <button class="btn" onclick="circleEnter('${CIRCLE.cat}')">再来一局</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderCircleList()">返回专场列表</button>
+  </div>`;
+}
+
+/* ==================== 排行榜（本地模拟全服玩家） ==================== */
+// 纯本地无后端，模拟一批注册玩家；本机玩家按真实段位/用时插入排名。
+const FAKE_PLAYERS=[
+  {name:"梗之神本神", stars:24, campTotal:412},
+  {name:"冲浪到上头", stars:21, campTotal:458},
+  {name:"接梗小能手", stars:18, campTotal:501},
+  {name:"5G冲浪选手", stars:15, campTotal:533},
+  {name:"梗百科常客", stars:13, campTotal:567},
+  {name:"摸鱼冲浪仔", stars:10, campTotal:612},
+  {name:"抽象带师", stars:8,  campTotal:655},
+  {name:"慢半拍网友", stars:5,  campTotal:721},
+  {name:"刚入坑萌新", stars:2,  campTotal:null},
+  {name:"2G断网中", stars:0,  campTotal:null}
+];
+function rankBoard(){
+  const me={name:displayName(), stars:state.stars, campTotal:state.campTotalBest, me:true};
+  const list=FAKE_PLAYERS.concat([me]);
+  return list.sort((a,b)=>b.stars-a.stars || (a.campTotal??1e9)-(b.campTotal??1e9));
+}
+function campBoard(){
+  const rows=FAKE_PLAYERS.filter(p=>p.campTotal!=null).map(p=>({name:p.name, campTotal:p.campTotal}));
+  if(state.campTotalBest!=null) rows.push({name:displayName(), campTotal:state.campTotalBest, me:true});
+  return rows.sort((a,b)=>a.campTotal-b.campTotal);
+}
+function renderBoard(){
+  leaveQuiz();
+  const rankList=rankBoard();
+  const campList=campBoard();
+  const myRank=rankList.findIndex(p=>p.me)+1;
+  const myCampRank=campList.findIndex(p=>p.me)+1;
+  const rankRows=rankList.map((p,i)=>`
+    <div class="board-row ${p.me?"me":""}">
+      <div class="br-rank">${i+1}</div>
+      <div class="br-name">${esc(p.name)}${p.me?"（我）":""}</div>
+      <div class="br-meta">${p.stars} 星</div>
+    </div>`).join("");
+  const campRows=campList.length?campList.map((p,i)=>`
+    <div class="board-row ${p.me?"me":""}">
+      <div class="br-rank">${i+1}</div>
+      <div class="br-name">${esc(p.name)}${p.me?"（我）":""}</div>
+      <div class="br-meta">${fmtTime(p.campTotal)}</div>
+    </div>`).join(""):`<div class="empty-tip">通关全部 30 关且每关全对后，才能进入闯关用时榜</div>`;
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="topbar">
+      <div class="title">排行榜</div>
+      <button class="icon-btn" onclick="renderLobby()">退出</button>
+    </div>
+    <div class="result-card" style="padding:14px">
+      <h2>🏅 段位排名</h2>
+      <p style="color:var(--text-dim);font-size:13px">按段位星数排序　我的段位排名：第 ${myRank} 名</p>
+    </div>
+    <div class="board">${rankRows}</div>
+    <div class="result-card" style="padding:14px;margin-top:14px">
+      <h2>⏱ 闯关用时榜</h2>
+      <p style="color:var(--text-dim);font-size:13px">30 关全部做对的总用时，越短越快${state.campTotalBest!=null?`　我的排名：第 ${myCampRank} 名`:""}</p>
+    </div>
+    <div class="board">${campRows}</div>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderLobby()">返回大厅</button>
+  </div>`;
+}
+
+/* ==================== 梗百科 ==================== */
+function renderBook(){
+  leaveQuiz();
+  const ids=Object.keys(state.encyclopedia).map(Number).filter(i=>QUESTIONS[i]);
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="topbar">
+      <div class="title">梗百科</div>
+      <div class="coin-box"><img onerror="this.style.visibility='hidden'" src="${ASSET.coin}">${state.coins}</div>
+    </div>
+    ${ids.length===0?`<div class="empty-tip">还没有收集到梗<br>去答题解锁你的专属梗百科吧～</div>`:
+      ids.map(i=>{const q=QUESTIONS[i];return `
+      <div class="list-item">
+        <div class="q">${esc(q.q)}</div>
+        <div class="a">答案：${esc(q.options[q.ans])}</div>
+        <div class="exp">${esc(q.exp)}　<span style="color:var(--text-dim)">[${q.cat}]</span></div>
+      </div>`;}).join("")}
+    <div class="tabbar">
+      <div class="tab" onclick="renderLobby()"><span class="ico">🏠</span>大厅</div>
+      <div class="tab active"><span class="ico">📖</span>百科</div>
+      <div class="tab" onclick="renderCheckin()"><span class="ico">📅</span>签到</div>
+      <div class="tab" onclick="renderProfile()"><span class="ico">👤</span>我的</div>
+    </div>
+  </div>`;
+}
+
+/* ==================== 每日签到 ==================== */
+function renderCheckin(){
+  leaveQuiz();
+  const today=todayStr();
+  const signed=state.lastCheckin===today;
+  const reward=30;
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="topbar">
+      <div class="title">每日签到</div>
+      <div class="coin-box"><img onerror="this.style.visibility='hidden'" src="${ASSET.coin}">${state.coins}</div>
+    </div>
+    <div class="result-card">
+      <img onerror="this.style.visibility='hidden'" src="${ASSET.checkin}">
+      <h2>${signed?"今日已签到":"每日签到领金币"}</h2>
+      <p style="color:var(--text-dim)">签到可得 ${reward} 金币，连续签到还能领道具卡</p>
+    </div>
+    <button class="btn" ${signed?"disabled":""} onclick="SFX.click();doCheckin()">${signed?"明天再来":"立即签到 +"+reward}</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="renderLobby()">返回大厅</button>
+  </div>`;
+}
+function doCheckin(){
+  if(state.lastCheckin===todayStr()) return;
+  state.lastCheckin=todayStr();
+  state.coins+=30;
+  const cycle=Math.floor((Date.now()/86400000)%3);
+  if(cycle===0){ state.tools.exclude++; state.tools.delay++; }
+  SFX.coin(); saveState(); renderCheckin();
+}
+
+/* ==================== 商城 ==================== */
+let shopTab="tool";
+function renderShop(){ leaveQuiz(); shopTab="tool"; drawShop(); }
+function drawShop(){
+  const tabs=[["tool","对局道具"],["frame","头像框"],["title","称号"],["circle","圈层专场"]];
+  let body="";
+  if(shopTab==="tool"){
+    body=SHOP_TOOLS.map(t=>`
+      <div class="shop-item">
+        <img onerror="this.style.visibility='hidden'" src="${t.icon}">
+        <div class="si-info">
+          <div class="si-name">${t.name}</div>
+          <div class="si-desc">${t.desc}<br>持有：${state.tools[t.id]} 张</div>
+        </div>
+        <button class="si-btn buy" onclick="buyTool('${t.id}')">${t.price}金币</button>
+      </div>`).join("");
+  }else if(shopTab==="frame"){
+    body=FRAMES.map(f=>{
+      const owned=state.framesOwned.includes(f.id);
+      const unlocked=frameUnlocked(f);
+      const equipped=state.frameEquipped===f.id;
+      let btn;
+      if(equipped){ btn=`<button class="si-btn equipped" disabled>已装备</button>`; }
+      else if(owned){ btn=`<button class="si-btn equip" onclick="equipFrame('${f.id}')">装备</button>`; }
+      else if(!unlocked){ btn=`<button class="si-btn lock" disabled>未解锁</button>`; }
+      else{ btn=`<button class="si-btn buy" onclick="buyFrame('${f.id}')">${f.price}金币</button>`; }
+      return `<div class="shop-item">
+        <img onerror="this.style.visibility='hidden'" src="${f.icon}">
+        <div class="si-info"><div class="si-name">${f.name}</div><div class="si-desc">${f.desc}</div></div>
+        ${btn}
+      </div>`;
+    }).join("");
+  }else if(shopTab==="title"){
+    body=TITLES.map(t=>{
+      const owned=state.titlesOwned.includes(t.id);
+      const unlocked=titleUnlocked(t);
+      const equipped=state.titleEquipped===t.id;
+      let btn;
+      if(equipped){ btn=`<button class="si-btn equipped" disabled>已佩戴</button>`; }
+      else if(owned){ btn=`<button class="si-btn equip" onclick="equipTitle('${t.id}')">佩戴</button>`; }
+      else if(!unlocked){ btn=`<button class="si-btn lock" disabled>未解锁</button>`; }
+      else{ btn=`<button class="si-btn buy" onclick="buyTitle('${t.id}')">${t.price}金币</button>`; }
+      return `<div class="shop-item">
+        <img onerror="this.style.visibility='hidden'" src="${t.icon}">
+        <div class="si-info"><div class="si-name">${t.name}</div><div class="si-desc">${t.desc}</div></div>
+        ${btn}
+      </div>`;
+    }).join("");
+  }else{
+    body=CIRCLES.map(cat=>{
+      const unlocked=state.circlesUnlocked.includes(cat);
+      const cnt=QUESTIONS.filter(q=>q.cat===cat).length;
+      const best=state.circleBest[cat];
+      let btn=unlocked?`<button class="si-btn equip" onclick="renderCircleList()">已解锁</button>`:`<button class="si-btn buy" onclick="unlockCircle('${cat}')">${CIRCLE_PRICE}金币</button>`;
+      return `<div class="shop-item">
+        <img onerror="this.style.visibility='hidden'" src="${ASSET.catCover[cat]||ASSET.test}">
+        <div class="si-info"><div class="si-name">${esc(cat)}专场</div><div class="si-desc">${cnt} 题${best!=null?" · 最佳 "+best+"分":""}</div></div>
+        ${btn}
+      </div>`;
+    }).join("");
+  }
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="topbar">
+      <div class="title">梗商城</div>
+      <div class="coin-box"><img onerror="this.style.visibility='hidden'" src="${ASSET.coin}">${state.coins}</div>
+    </div>
+    <div class="shop-tabs">
+      ${tabs.map(([k,n])=>`<div class="shop-tab ${shopTab===k?"active":""}" onclick="shopTab='${k}';drawShop()">${n}</div>`).join("")}
+    </div>
+    ${body}
+    <button class="btn ghost" style="margin-top:12px" onclick="renderLobby()">返回大厅</button>
+  </div>`;
+}
+function buyTool(id){
+  const t=SHOP_TOOLS.find(x=>x.id===id);
+  if(state.coins<t.price){ alert("金币不够啦，去赚点金币吧！"); return; }
+  state.coins-=t.price; state.tools[id]++; saveState(); drawShop();
+}
+function buyFrame(id){
+  const f=frameById(id);
+  if(state.coins<f.price){ alert("金币不够啦！"); return; }
+  state.coins-=f.price; state.framesOwned.push(id); state.frameEquipped=id; saveState(); drawShop();
+}
+function equipFrame(id){ state.frameEquipped=id; saveState(); drawShop(); }
+function buyTitle(id){
+  const t=titleById(id);
+  if(state.coins<t.price){ alert("金币不够啦！"); return; }
+  state.coins-=t.price; state.titlesOwned.push(id); state.titleEquipped=id; saveState(); drawShop();
+}
+function equipTitle(id){ state.titleEquipped=id; saveState(); drawShop(); }
+function unlockCircle(cat){
+  if(state.coins<CIRCLE_PRICE){ alert("金币不够啦！"); return; }
+  if(!confirm(`花费 ${CIRCLE_PRICE} 金币解锁「${cat}」专场？`)) return;
+  state.coins-=CIRCLE_PRICE; state.circlesUnlocked.push(cat); saveState(); drawShop();
+}
+
+/* ==================== 昵称弹窗 ==================== */
+function openRename(){
+  if(renameCooldownLeft()>0){ alert(`改名还在冷却中，还需 ${fmtCooldown(renameCooldownLeft())}`); return; }
+  if(state.coins<RENAME_PRICE){ alert(`金币不够啦，改名需要 ${RENAME_PRICE} 金币`); SFX.no(); return; }
+  SFX.click();
+  const old=state.nickname||"";
+  const mask=document.createElement("div");
+  mask.className="modal-mask";
+  mask.innerHTML=`<div class="modal-card">
+    <h2>修改昵称</h2>
+    <p>最多 ${NAME_MAX} 位，支持汉字 / 英文 / 数字 / 符号；本次花费 ${RENAME_PRICE} 金币，改完 7 天内不能再改。</p>
+    <input id="renameInput" class="text-input" maxlength="${NAME_MAX}" value="${esc(old)}" placeholder="输入你的新昵称">
+    <div style="display:flex;gap:10px;margin-top:14px">
+      <button class="btn ghost" onclick="this.closest('.modal-mask').remove()">取消</button>
+      <button class="btn" onclick="confirmRename()">确认改名</button>
+    </div>
+  </div>`;
+  document.body.appendChild(mask);
+  document.getElementById("renameInput").focus();
+}
+function confirmRename(){
+  const v=(document.getElementById("renameInput").value||"").trim();
+  if(v.length===0){ alert("昵称不能为空哦~"); return; }
+  if(v.length>NAME_MAX){ alert(`昵称最多 ${NAME_MAX} 位`); return; }
+  if(v===state.nickname){ alert("这个昵称已经是当前名字啦"); return; }
+  if(renameCooldownLeft()>0){ alert(`还在改名冷却中：${fmtCooldown(renameCooldownLeft())}后才能再改`); return; }
+  if(state.coins<RENAME_PRICE){ alert("金币不够啦！"); return; }
+  state.coins-=RENAME_PRICE; state.nickname=v; state.lastRename=Date.now();
+  SFX.coin(); saveState();
+  document.querySelector(".modal-mask").remove();
+  renderProfile();
+}
+
+/* ==================== 个人中心 ==================== */
+function renderProfile(){
+  leaveQuiz();
+  const acc=state.totalPlayed?Math.round(state.totalCorrect/state.totalPlayed*100):0;
+  const frame=frameById(state.frameEquipped);
+  const title=titleById(state.titleEquipped);
+  app.innerHTML=`
+  <div class="screen active">
+    <div class="topbar"><div class="title">我的</div></div>
+    <div class="profile-head">
+      <div class="avatar-wrap"><img onerror="this.style.visibility='hidden'" src="${frame.icon}"></div>
+      <div class="profile-title">${esc(displayName())}</div>
+      <div class="profile-sub">${rankName()} · ${state.stars} 星 · ${esc(title.name)}</div>
+    </div>
+    <div class="list-item">
+      <div class="q">我的昵称：<b style="color:var(--yellow)">${esc(displayName())}</b></div>
+      <div class="exp" style="margin-top:6px">${renameCooldownLeft()>0?`改名冷却中：还需 ${fmtCooldown(renameCooldownLeft())}`:`${RENAME_PRICE} 金币即可修改昵称，7 天只能改一次`}</div>
+      <button class="btn orange" style="margin-top:10px" ${renameCooldownLeft()>0||state.coins<RENAME_PRICE?"disabled":""} onclick="openRename()">✏️ 修改昵称</button>
+    </div>
+    <div class="result-stats">
+      <div class="stat"><div class="num">${state.totalPlayed}</div><div class="lbl">累计答题</div></div>
+      <div class="stat"><div class="num">${acc}%</div><div class="lbl">正确率</div></div>
+      <div class="stat"><div class="num">${Object.keys(state.encyclopedia).length}</div><div class="lbl">收集梗数</div></div>
+    </div>
+    <div class="list-item"><div class="q">闯关进度：第 ${state.level}/30 关</div></div>
+    <div class="list-item"><div class="q">对战胜场：${state.vsWins} 场</div></div>
+    <div class="list-item">
+      <div class="q">个人最佳（全对用时）</div>
+      <div class="exp" style="margin-top:6px">
+        1v1对战：${state.vsBestTime!=null?fmtTime(state.vsBestTime):"—"}<br>
+        好友单挑：${state.friendBestTime!=null?fmtTime(state.friendBestTime):"—"}<br>
+        闯关通关总用时：${state.campTotalBest!=null?fmtTime(state.campTotalBest):"—"}
+      </div>
+    </div>
+    <div class="list-item"><div class="q">金币：${state.coins}　道具：排除卡×${state.tools.exclude} 延时卡×${state.tools.delay}</div></div>
+    <div class="switch-row">
+      <div class="sw-info"><div class="sw-name">🔊 答题音效</div><div class="sw-desc">点击 / 答对 / 答错 / 连击 / 胜负提示音</div></div>
+      <div class="switch ${state.soundOn?"on":""}" onclick="toggleSound();renderProfile()"></div>
+    </div>
+    <div class="switch-row">
+      <div class="sw-info"><div class="sw-name">🎵 背景音乐</div><div class="sw-desc">轻松休闲的循环 BGM，可随时关闭</div></div>
+      <div class="switch ${state.bgmOn?"on":""}" onclick="toggleBGM();renderProfile()"></div>
+    </div>
+    <button class="btn orange" style="margin-top:12px" onclick="renderShop()">换装 · 进商城</button>
+    <button class="btn ghost" style="margin-top:12px" onclick="resetAll()">重置全部进度</button>
+    <div class="tabbar">
+      <div class="tab" onclick="renderLobby()"><span class="ico">🏠</span>大厅</div>
+      <div class="tab" onclick="renderBook()"><span class="ico">📖</span>百科</div>
+      <div class="tab" onclick="renderBoard()"><span class="ico">🏆</span>排行</div>
+      <div class="tab" onclick="renderCheckin()"><span class="ico">📅</span>签到</div>
+      <div class="tab active"><span class="ico">👤</span>我的</div>
+    </div>
+  </div>`;
+}
+function resetAll(){
+  if(confirm("确定要清空所有进度、金币、装扮和收集记录吗？")){
+    localStorage.removeItem("memeQuizStateV2");
+    state=JSON.parse(JSON.stringify(DEFAULT_STATE));
+    saveState(); stopBGM(); renderSplash();
+  }
+}
+
+/* ==================== 新手指引 ==================== */
+const GUIDE_STEPS=[
+  {sel:".rank-bar", title:"你的身份名片", desc:"这里显示你的昵称、段位、称号和星数。答题获胜升段位，闯关和对战都能赚金币。"},
+  {sel:".menu-card", title:"单人闯关", desc:"最基础的玩法：一题一题接梗闯关，答错扣血量，通关解锁更多关卡，还能拿金币。"},
+  {sel:".menu-grid", title:"对战玩法", desc:"1v1对战和好友单挑都是双人 PK：答对又快又准得分更高；好友单挑建房发邀请码，约朋友同台接梗。"},
+  {sel:".menu-grid", title:"圈层专场 · 商城 · 百科", desc:"圈层专场是垂直接梗；商城买道具、头像框和称号；答过的梗会自动收进梗百科。"},
+  {sel:".tabbar", title:"底部导航", desc:"大厅、百科、签到、我的随时切换；每天签到领金币，昵称和装扮都在「我的」里设置。"}
+];
+let guideIdx=0, guideMask=null, guideHL=null, guideCard=null;
+function startGuide(){
+  guideIdx=0;
+  guideMask=document.createElement("div"); guideMask.className="guide-mask";
+  guideCard=document.createElement("div"); guideCard.className="guide-card";
+  document.body.appendChild(guideMask); document.body.appendChild(guideCard);
+  showGuideStep();
+}
+function showGuideStep(){
+  const step=GUIDE_STEPS[guideIdx];
+  const target=document.querySelector(step.sel);
+  if(guideHL) guideHL.remove();
+  guideHL=document.createElement("div"); guideHL.className="guide-highlight";
+  document.body.appendChild(guideHL);
+  if(target){
+    const r=target.getBoundingClientRect();
+    guideHL.style.left=(r.left-6)+"px"; guideHL.style.top=(r.top-6)+"px";
+    guideHL.style.width=(r.width+12)+"px"; guideHL.style.height=(r.height+12)+"px";
+  }else{ guideHL.style.display="none"; }
+  const dots=GUIDE_STEPS.map((_,i)=>`<div class="dot ${i===guideIdx?"active":""}"></div>`).join("");
+  guideCard.innerHTML=`
+    <div class="guide-dots">${dots}</div>
+    <div class="g-title">${step.title}</div>
+    <div class="g-desc">${step.desc}</div>
+    <div class="g-btns">
+      <button class="btn ghost" onclick="skipGuide()">跳过</button>
+      <button class="btn" onclick="nextGuide()">${guideIdx===GUIDE_STEPS.length-1?"开始冲浪":"下一步"}</button>
+    </div>`;
+}
+function nextGuide(){
+  SFX.click();
+  guideIdx++;
+  if(guideIdx>=GUIDE_STEPS.length){ finishGuide(); }
+  else showGuideStep();
+}
+function skipGuide(){ SFX.click(); finishGuide(); }
+function finishGuide(){
+  state.guided=true; saveState();
+  if(guideMask) guideMask.remove();
+  if(guideHL) guideHL.remove();
+  if(guideCard) guideCard.remove();
+}
+
+/* ==================== 启动 ==================== */
+renderSplash();
+// 首次交互解锁音频并启动 BGM
+function unlockAudio(){
+  if(state.bgmOn){ startBGM(); }
+  document.removeEventListener("click", unlockAudio);
+}
+document.addEventListener("click", unlockAudio);
+
+</script>
+</body>
+</html>
