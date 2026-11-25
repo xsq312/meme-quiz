@@ -45,6 +45,7 @@ function acceptWebSocket(req, socket){
   socket.write(`HTTP/1.1 101 Switching Protocols\r\nUpgrade: websocket\r\nConnection: Upgrade\r\nSec-WebSocket-Accept: ${accept}\r\n\r\n`);
   const peer={ socket, room:null, role:null, uid:null, name:'', buf:Buffer.alloc(0), connId:++connSeq, rport:socket.remotePort };
   wsPeers.add(peer);
+  console.log(`[ws] #${peer.connId} 连接建立 rport=${peer.rport} 在线=${wsPeers.size}`);
 
   socket.on('data', chunk=>{
     peer.buf=Buffer.concat([peer.buf,chunk]);
@@ -52,12 +53,12 @@ function acceptWebSocket(req, socket){
       const frame=parseFrame(peer.buf);
       if(!frame) break;
       peer.buf=frame.rest;
-      if(frame.opcode===8){ handleClose(peer); return; }       // close
-      if(frame.opcode===1){ try{ onMessage(peer, JSON.parse(frame.payload.toString('utf8'))); }catch(e){} }
+      if(frame.opcode===8){ console.log(`[ws] #${peer.connId} 收到 close`); handleClose(peer); return; }
+      if(frame.opcode===1){ try{ const msg=JSON.parse(frame.payload.toString('utf8')); console.log(`[ws] #${peer.connId} 收 <- ${msg.type} ${msg.code||''}`); onMessage(peer, msg); }catch(e){} }
     }
   });
-  socket.on('close', ()=>{ handleClose(peer); });
-  socket.on('error', ()=>{ handleClose(peer); });
+  socket.on('close', ()=>{ console.log(`[ws] #${peer.connId} 关闭`); handleClose(peer); });
+  socket.on('error', e=>{ console.log(`[ws] #${peer.connId} 错误: ${e.message}`); handleClose(peer); });
 }
 function parseFrame(buf){
   if(buf.length<2) return null;
@@ -74,13 +75,14 @@ function parseFrame(buf){
   return { opcode, payload, rest:buf.slice(off+len) };
 }
 function send(peer, obj){
-  if(!peer.socket||peer.socket.destroyed) return;
+  if(!peer.socket||peer.socket.destroyed){ console.log(`[ws] #${peer.connId} 发送跳过(已断开) ${obj.type}`); return; }
   const payload=Buffer.from(JSON.stringify(obj),'utf8');
   const len=payload.length; let header;
   if(len<126){ header=Buffer.from([0x81,len]); }
   else if(len<65536){ header=Buffer.alloc(4); header[0]=0x81; header[1]=126; header.writeUInt16BE(len,2); }
   else{ header=Buffer.alloc(10); header[0]=0x81; header[1]=127; header.writeBigUInt64BE(BigInt(len),2); }
-  peer.socket.write(Buffer.concat([header,payload]));
+  console.log(`[ws] #${peer.connId} 发 -> ${obj.type} (${len}B)`);
+  peer.socket.write(Buffer.concat([header,payload]), err=>{ if(err) console.log(`[ws] #${peer.connId} 写回失败: ${err.message}`); });
 }
 
 /* ---------- 房间广播 ---------- */
@@ -217,4 +219,4 @@ server.on('upgrade',(req,socket)=>{
     acceptWebSocket(req,socket);
   }
 });
-server.listen(PORT,()=>{ console.log(`[梗王联机] 服务已启动: http://localhost:${PORT}`); });
+server.listen(PORT,'0.0.0.0',()=>{ console.log(`[梗王联机] 服务已启动: http://0.0.0.0:${PORT}`); });
